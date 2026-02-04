@@ -2,22 +2,17 @@
 
 import { useState, useEffect } from "react";
 import {
-    Plus,
+    UserPlus,
     Users,
     Mail,
     Trash2,
     Copy,
     Check,
-    UserPlus,
     Clock,
     CheckCircle,
     XCircle,
+    X,
 } from "lucide-react";
-import Card, { CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
-import Button from "@/components/ui/Button";
-import Input from "@/components/ui/Input";
-import Modal from "@/components/ui/Modal";
-import Badge from "@/components/ui/Badge";
 import { formatDistanceToNow } from "date-fns";
 import toast from "react-hot-toast";
 
@@ -48,11 +43,20 @@ export default function BeneficiariesPage() {
     const [showAddModal, setShowAddModal] = useState(false);
     const [saving, setSaving] = useState(false);
     const [copiedKey, setCopiedKey] = useState<string | null>(null);
+    const [isDark, setIsDark] = useState(false);
 
     // Form state
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
     const [relationship, setRelationship] = useState("");
+
+    useEffect(() => {
+        const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+        setIsDark(mediaQuery.matches);
+        const handler = (e: MediaQueryListEvent) => setIsDark(e.matches);
+        mediaQuery.addEventListener("change", handler);
+        return () => mediaQuery.removeEventListener("change", handler);
+    }, []);
 
     useEffect(() => {
         fetchBeneficiaries();
@@ -132,179 +136,721 @@ export default function BeneficiariesPage() {
     const getStatusIcon = (status: string) => {
         switch (status) {
             case "VERIFIED":
-                return <CheckCircle className="w-4 h-4 text-green-500" />;
+                return <CheckCircle style={{ width: "16px", height: "16px", color: "#10b981" }} />;
             case "FAILED":
-                return <XCircle className="w-4 h-4 text-red-500" />;
+                return <XCircle style={{ width: "16px", height: "16px", color: "#ef4444" }} />;
             default:
-                return <Clock className="w-4 h-4 text-amber-500" />;
+                return <Clock style={{ width: "16px", height: "16px", color: "#f59e0b" }} />;
         }
     };
 
-    const getStatusVariant = (status: string): "success" | "danger" | "warning" => {
+    const getStatusBadgeColors = (status: string) => {
         switch (status) {
             case "VERIFIED":
-                return "success";
+                return { bg: "#d1fae5", color: "#047857" };
             case "FAILED":
-                return "danger";
+                return { bg: "#fee2e2", color: "#dc2626" };
             default:
-                return "warning";
+                return { bg: "#fef3c7", color: "#d97706" };
         }
+    };
+
+    const theme = {
+        textPrimary: isDark ? "#f8fafc" : "#111827",
+        textSecondary: isDark ? "#94a3b8" : "#64748b",
+        textMuted: isDark ? "#64748b" : "#9ca3af",
+        cardBg: isDark ? "rgba(30, 41, 59, 0.7)" : "rgba(255, 255, 255, 0.7)",
+        cardBorder: isDark ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.05)",
+        inputBg: isDark ? "#1e293b" : "#f9fafb",
+        inputBorder: isDark ? "#334155" : "#e5e7eb",
+        hoverBg: isDark ? "#1e293b" : "#f1f5f9",
+        dangerBg: isDark ? "rgba(239, 68, 68, 0.1)" : "#fef2f2",
+        dangerText: isDark ? "#fca5a5" : "#dc2626",
+        infoBg: isDark ? "rgba(59, 130, 246, 0.1)" : "#eff6ff",
+        infoText: isDark ? "#93c5fd" : "#1e40af",
     };
 
     if (loading) {
         return (
-            <div className="flex items-center justify-center h-64">
-                <div className="animate-spin w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full" />
+            <div
+                style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    minHeight: "400px",
+                }}
+            >
+                <div
+                    style={{
+                        width: "32px",
+                        height: "32px",
+                        border: "4px solid #6366f1",
+                        borderTopColor: "transparent",
+                        borderRadius: "50%",
+                    }}
+                    className="animate-spin"
+                />
             </div>
         );
     }
 
     return (
-        <div className="space-y-8">
+        <div>
             {/* Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                <div>
-                    <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Beneficiaries</h1>
-                    <p className="text-gray-500 dark:text-gray-400 mt-1">
-                        Manage who can access your digital legacy
-                    </p>
+            <div
+                style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "clamp(12px, 3vw, 16px)",
+                    marginBottom: "clamp(24px, 6vw, 32px)",
+                }}
+            >
+                <div
+                    style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "8px",
+                    }}
+                    className="header-wrapper"
+                >
+                    <div>
+                        <h1
+                            style={{
+                                fontSize: "clamp(24px, 6vw, 32px)",
+                                fontWeight: "700",
+                                color: theme.textPrimary,
+                            }}
+                        >
+                            Beneficiaries
+                        </h1>
+                        <p
+                            style={{
+                                fontSize: "clamp(13px, 3.2vw, 15px)",
+                                color: theme.textSecondary,
+                                marginTop: "4px",
+                            }}
+                        >
+                            Manage who can access your digital legacy
+                        </p>
+                    </div>
+                    <button
+                        onClick={() => setShowAddModal(true)}
+                        style={{
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            gap: "8px",
+                            padding: "clamp(10px, 2.5vw, 12px) clamp(16px, 4vw, 20px)",
+                            borderRadius: "12px",
+                            background: "linear-gradient(135deg, #6366f1, #8b5cf6)",
+                            color: "white",
+                            fontSize: "clamp(14px, 3.5vw, 15px)",
+                            fontWeight: "600",
+                            border: "none",
+                            cursor: "pointer",
+                            boxShadow: "0 4px 12px rgba(99, 102, 241, 0.25)",
+                            transition: "all 0.2s",
+                            width: "100%",
+                        }}
+                        className="add-btn"
+                        onMouseEnter={(e) => {
+                            e.currentTarget.style.transform = "translateY(-2px)";
+                            e.currentTarget.style.boxShadow = "0 6px 16px rgba(99, 102, 241, 0.35)";
+                        }}
+                        onMouseLeave={(e) => {
+                            e.currentTarget.style.transform = "translateY(0)";
+                            e.currentTarget.style.boxShadow = "0 4px 12px rgba(99, 102, 241, 0.25)";
+                        }}
+                    >
+                        <UserPlus style={{ width: "20px", height: "20px" }} />
+                        Add Beneficiary
+                    </button>
                 </div>
-                <Button onClick={() => setShowAddModal(true)}>
-                    <UserPlus className="w-5 h-5 mr-2" />
-                    Add Beneficiary
-                </Button>
             </div>
 
             {/* Beneficiaries List */}
             {beneficiaries.length > 0 ? (
-                <div className="space-y-4">
+                <div style={{ display: "flex", flexDirection: "column", gap: "clamp(12px, 3vw, 16px)" }}>
                     {beneficiaries.map((beneficiary) => (
-                        <Card key={beneficiary.id} variant="glass">
-                            <CardContent className="p-6">
-                                <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-                                    <div className="flex items-center gap-4 flex-1">
-                                        <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center text-white text-xl font-bold shadow-lg shadow-indigo-500/25">
-                                            {beneficiary.name[0].toUpperCase()}
-                                        </div>
-                                        <div className="flex-1 min-w-0">
-                                            <h3 className="font-semibold text-gray-900 dark:text-white text-lg">
-                                                {beneficiary.name}
-                                            </h3>
-                                            <div className="flex items-center gap-2 text-sm text-gray-500 mt-1">
-                                                <Mail className="w-4 h-4" />
-                                                <span className="truncate">{beneficiary.email}</span>
-                                            </div>
-                                            <div className="flex items-center gap-3 mt-2">
-                                                <Badge variant="info" size="sm">
-                                                    {beneficiary.relationship}
-                                                </Badge>
-                                                <Badge variant={getStatusVariant(beneficiary.verificationStatus)} size="sm">
-                                                    {getStatusIcon(beneficiary.verificationStatus)}
-                                                    <span className="ml-1">{beneficiary.verificationStatus}</span>
-                                                </Badge>
-                                            </div>
-                                        </div>
+                        <div
+                            key={beneficiary.id}
+                            style={{
+                                backgroundColor: theme.cardBg,
+                                backdropFilter: "blur(12px)",
+                                borderRadius: "16px",
+                                padding: "clamp(16px, 4vw, 24px)",
+                                border: `1px solid ${theme.cardBorder}`,
+                                boxShadow: isDark
+                                    ? "0 4px 12px rgba(0, 0, 0, 0.3)"
+                                    : "0 4px 12px rgba(0, 0, 0, 0.08)",
+                                transition: "all 0.2s",
+                            }}
+                            className="beneficiary-card"
+                        >
+                            <div
+                                style={{
+                                    display: "flex",
+                                    flexDirection: "column",
+                                    gap: "16px",
+                                }}
+                                className="beneficiary-content"
+                            >
+                                {/* Main info */}
+                                <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+                                    <div
+                                        style={{
+                                            width: "clamp(48px, 12vw, 56px)",
+                                            height: "clamp(48px, 12vw, 56px)",
+                                            borderRadius: "16px",
+                                            background: "linear-gradient(135deg, #6366f1, #8b5cf6)",
+                                            display: "flex",
+                                            alignItems: "center",
+                                            justifyContent: "center",
+                                            color: "white",
+                                            fontSize: "clamp(18px, 4.5vw, 24px)",
+                                            fontWeight: "700",
+                                            boxShadow: "0 4px 12px rgba(99, 102, 241, 0.25)",
+                                            flexShrink: 0,
+                                        }}
+                                    >
+                                        {beneficiary.name[0].toUpperCase()}
                                     </div>
-
-                                    <div className="flex items-center gap-2 sm:pl-4 sm:border-l sm:border-gray-200 dark:border-gray-700">
-                                        <div className="flex-1 sm:flex-none">
-                                            <p className="text-xs text-gray-500 mb-1">Access Key</p>
-                                            <div className="flex items-center gap-2">
-                                                <code className="text-xs bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded font-mono">
-                                                    {beneficiary.accessKey.substring(0, 8)}...
-                                                </code>
-                                                <button
-                                                    onClick={() => copyAccessKey(beneficiary.accessKey)}
-                                                    className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-                                                >
-                                                    {copiedKey === beneficiary.accessKey ? (
-                                                        <Check className="w-4 h-4 text-green-500" />
-                                                    ) : (
-                                                        <Copy className="w-4 h-4 text-gray-400" />
-                                                    )}
-                                                </button>
-                                            </div>
-                                        </div>
-                                        <button
-                                            onClick={() => handleDeleteBeneficiary(beneficiary.id)}
-                                            className="p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 text-gray-400 hover:text-red-500 transition-colors"
+                                    <div style={{ flex: 1, minWidth: 0 }}>
+                                        <h3
+                                            style={{
+                                                fontSize: "clamp(16px, 4vw, 18px)",
+                                                fontWeight: "600",
+                                                color: theme.textPrimary,
+                                                marginBottom: "4px",
+                                            }}
                                         >
-                                            <Trash2 className="w-5 h-5" />
-                                        </button>
+                                            {beneficiary.name}
+                                        </h3>
+                                        <div
+                                            style={{
+                                                display: "flex",
+                                                alignItems: "center",
+                                                gap: "6px",
+                                                fontSize: "clamp(12px, 3vw, 13px)",
+                                                color: theme.textSecondary,
+                                            }}
+                                        >
+                                            <Mail style={{ width: "14px", height: "14px", flexShrink: 0 }} />
+                                            <span
+                                                style={{
+                                                    overflow: "hidden",
+                                                    textOverflow: "ellipsis",
+                                                    whiteSpace: "nowrap",
+                                                }}
+                                            >
+                                                {beneficiary.email}
+                                            </span>
+                                        </div>
+                                        <div
+                                            style={{
+                                                display: "flex",
+                                                alignItems: "center",
+                                                gap: "8px",
+                                                marginTop: "8px",
+                                                flexWrap: "wrap",
+                                            }}
+                                        >
+                                            <span
+                                                style={{
+                                                    padding: "4px 12px",
+                                                    borderRadius: "8px",
+                                                    fontSize: "clamp(11px, 2.7vw, 12px)",
+                                                    fontWeight: "600",
+                                                    backgroundColor: "#dbeafe",
+                                                    color: "#1e40af",
+                                                }}
+                                            >
+                                                {beneficiary.relationship}
+                                            </span>
+                                            <span
+                                                style={{
+                                                    display: "flex",
+                                                    alignItems: "center",
+                                                    gap: "4px",
+                                                    padding: "4px 12px",
+                                                    borderRadius: "8px",
+                                                    fontSize: "clamp(11px, 2.7vw, 12px)",
+                                                    fontWeight: "600",
+                                                    backgroundColor: getStatusBadgeColors(beneficiary.verificationStatus).bg,
+                                                    color: getStatusBadgeColors(beneficiary.verificationStatus).color,
+                                                }}
+                                            >
+                                                {getStatusIcon(beneficiary.verificationStatus)}
+                                                <span>{beneficiary.verificationStatus}</span>
+                                            </span>
+                                        </div>
                                     </div>
                                 </div>
-                                <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-800 text-xs text-gray-500">
+
+                                {/* Actions */}
+                                <div
+                                    style={{
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "space-between",
+                                        gap: "12px",
+                                        paddingTop: "12px",
+                                        borderTop: `1px solid ${isDark ? "#1e293b" : "#e2e8f0"}`,
+                                    }}
+                                    className="beneficiary-actions"
+                                >
+                                    <div style={{ flex: 1, minWidth: 0 }}>
+                                        <p
+                                            style={{
+                                                fontSize: "clamp(11px, 2.7vw, 12px)",
+                                                color: theme.textSecondary,
+                                                marginBottom: "4px",
+                                            }}
+                                        >
+                                            Access Key
+                                        </p>
+                                        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                                            <code
+                                                style={{
+                                                    fontSize: "clamp(11px, 2.7vw, 12px)",
+                                                    backgroundColor: isDark ? "#1e293b" : "#f1f5f9",
+                                                    padding: "4px 8px",
+                                                    borderRadius: "6px",
+                                                    fontFamily: "monospace",
+                                                    color: theme.textPrimary,
+                                                }}
+                                            >
+                                                {beneficiary.accessKey.substring(0, 8)}...
+                                            </code>
+                                            <button
+                                                onClick={() => copyAccessKey(beneficiary.accessKey)}
+                                                style={{
+                                                    padding: "6px",
+                                                    borderRadius: "6px",
+                                                    background: "none",
+                                                    border: "none",
+                                                    cursor: "pointer",
+                                                    color: theme.textSecondary,
+                                                    transition: "all 0.2s",
+                                                }}
+                                                onMouseEnter={(e) => {
+                                                    e.currentTarget.style.backgroundColor = theme.hoverBg;
+                                                }}
+                                                onMouseLeave={(e) => {
+                                                    e.currentTarget.style.backgroundColor = "transparent";
+                                                }}
+                                            >
+                                                {copiedKey === beneficiary.accessKey ? (
+                                                    <Check style={{ width: "16px", height: "16px", color: "#10b981" }} />
+                                                ) : (
+                                                    <Copy style={{ width: "16px", height: "16px" }} />
+                                                )}
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <button
+                                        onClick={() => handleDeleteBeneficiary(beneficiary.id)}
+                                        style={{
+                                            padding: "8px",
+                                            borderRadius: "8px",
+                                            background: "none",
+                                            border: "none",
+                                            cursor: "pointer",
+                                            color: theme.textSecondary,
+                                            transition: "all 0.2s",
+                                            flexShrink: 0,
+                                        }}
+                                        onMouseEnter={(e) => {
+                                            e.currentTarget.style.backgroundColor = theme.dangerBg;
+                                            e.currentTarget.style.color = theme.dangerText;
+                                        }}
+                                        onMouseLeave={(e) => {
+                                            e.currentTarget.style.backgroundColor = "transparent";
+                                            e.currentTarget.style.color = theme.textSecondary;
+                                        }}
+                                    >
+                                        <Trash2 style={{ width: "18px", height: "18px" }} />
+                                    </button>
+                                </div>
+
+                                {/* Timestamp */}
+                                <div
+                                    style={{
+                                        fontSize: "clamp(11px, 2.7vw, 12px)",
+                                        color: theme.textMuted,
+                                    }}
+                                >
                                     Added {formatDistanceToNow(new Date(beneficiary.createdAt), { addSuffix: true })}
                                 </div>
-                            </CardContent>
-                        </Card>
+                            </div>
+                        </div>
                     ))}
                 </div>
             ) : (
-                <Card variant="bordered" className="text-center py-12">
-                    <Users className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">No beneficiaries yet</h3>
-                    <p className="text-gray-500 mt-1">Add someone you trust to access your digital legacy</p>
-                    <Button className="mt-4" onClick={() => setShowAddModal(true)}>
-                        <UserPlus className="w-5 h-5 mr-2" />
+                <div
+                    style={{
+                        backgroundColor: theme.cardBg,
+                        backdropFilter: "blur(12px)",
+                        borderRadius: "16px",
+                        padding: "clamp(32px, 8vw, 48px)",
+                        border: `1px solid ${theme.cardBorder}`,
+                        textAlign: "center",
+                    }}
+                >
+                    <Users
+                        style={{
+                            width: "clamp(40px, 10vw, 48px)",
+                            height: "clamp(40px, 10vw, 48px)",
+                            color: theme.textMuted,
+                            margin: "0 auto clamp(12px, 3vw, 16px)",
+                        }}
+                    />
+                    <h3
+                        style={{
+                            fontSize: "clamp(16px, 4vw, 18px)",
+                            fontWeight: "600",
+                            color: theme.textPrimary,
+                        }}
+                    >
+                        No beneficiaries yet
+                    </h3>
+                    <p
+                        style={{
+                            fontSize: "clamp(13px, 3.2vw, 14px)",
+                            color: theme.textSecondary,
+                            marginTop: "4px",
+                            marginBottom: "clamp(16px, 4vw, 20px)",
+                        }}
+                    >
+                        Add someone you trust to access your digital legacy
+                    </p>
+                    <button
+                        onClick={() => setShowAddModal(true)}
+                        style={{
+                            display: "inline-flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            gap: "8px",
+                            padding: "clamp(10px, 2.5vw, 12px) clamp(16px, 4vw, 20px)",
+                            borderRadius: "12px",
+                            background: "linear-gradient(135deg, #6366f1, #8b5cf6)",
+                            color: "white",
+                            fontSize: "clamp(14px, 3.5vw, 15px)",
+                            fontWeight: "600",
+                            border: "none",
+                            cursor: "pointer",
+                            boxShadow: "0 4px 12px rgba(99, 102, 241, 0.25)",
+                        }}
+                    >
+                        <UserPlus style={{ width: "20px", height: "20px" }} />
                         Add Beneficiary
-                    </Button>
-                </Card>
+                    </button>
+                </div>
             )}
 
             {/* Add Beneficiary Modal */}
-            <Modal isOpen={showAddModal} onClose={closeAndReset} title="Add Beneficiary">
-                <div className="space-y-5">
-                    <Input
-                        label="Full Name"
-                        placeholder="John Doe"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                    />
-
-                    <Input
-                        label="Email Address"
-                        type="email"
-                        placeholder="john@example.com"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                    />
-
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                            Relationship
-                        </label>
-                        <select
-                            value={relationship}
-                            onChange={(e) => setRelationship(e.target.value)}
-                            className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200"
+            {showAddModal && (
+                <>
+                    {/* Overlay */}
+                    <div
+                        style={{
+                            position: "fixed",
+                            inset: "0",
+                            backgroundColor: "rgba(0, 0, 0, 0.5)",
+                            backdropFilter: "blur(4px)",
+                            zIndex: "50",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            padding: "clamp(16px, 4vw, 24px)",
+                        }}
+                        onClick={closeAndReset}
+                    >
+                        {/* Modal */}
+                        <div
+                            style={{
+                                backgroundColor: isDark ? "#0f172a" : "#ffffff",
+                                borderRadius: "16px",
+                                width: "100%",
+                                maxWidth: "500px",
+                                maxHeight: "90vh",
+                                overflow: "auto",
+                                boxShadow: isDark
+                                    ? "0 20px 60px rgba(0, 0, 0, 0.5)"
+                                    : "0 20px 60px rgba(0, 0, 0, 0.15)",
+                            }}
+                            onClick={(e) => e.stopPropagation()}
                         >
-                            <option value="">Select relationship</option>
-                            {relationships.map((rel) => (
-                                <option key={rel} value={rel}>
-                                    {rel}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
+                            {/* Modal Header */}
+                            <div
+                                style={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "space-between",
+                                    padding: "clamp(16px, 4vw, 24px)",
+                                    borderBottom: `1px solid ${isDark ? "#1e293b" : "#e2e8f0"}`,
+                                }}
+                            >
+                                <h2
+                                    style={{
+                                        fontSize: "clamp(18px, 4.5vw, 20px)",
+                                        fontWeight: "700",
+                                        color: theme.textPrimary,
+                                    }}
+                                >
+                                    Add Beneficiary
+                                </h2>
+                                <button
+                                    onClick={closeAndReset}
+                                    style={{
+                                        padding: "8px",
+                                        borderRadius: "8px",
+                                        background: "none",
+                                        border: "none",
+                                        cursor: "pointer",
+                                        color: theme.textSecondary,
+                                        transition: "background 0.2s",
+                                    }}
+                                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = theme.hoverBg)}
+                                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
+                                >
+                                    <X style={{ width: "20px", height: "20px" }} />
+                                </button>
+                            </div>
 
-                    <div className="p-4 rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
-                        <p className="text-sm text-blue-700 dark:text-blue-400">
-                            ℹ️ The beneficiary will receive an email notification when added.
-                            When your DMS is triggered, they&apos;ll receive access instructions and their unique access key.
-                        </p>
-                    </div>
+                            {/* Modal Content */}
+                            <div style={{ padding: "clamp(16px, 4vw, 24px)" }}>
+                                <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+                                    {/* Full Name */}
+                                    <div>
+                                        <label
+                                            style={{
+                                                display: "block",
+                                                fontSize: "clamp(13px, 3.2vw, 14px)",
+                                                fontWeight: "500",
+                                                color: theme.textSecondary,
+                                                marginBottom: "8px",
+                                            }}
+                                        >
+                                            Full Name
+                                        </label>
+                                        <input
+                                            type="text"
+                                            placeholder="John Doe"
+                                            value={name}
+                                            onChange={(e) => setName(e.target.value)}
+                                            style={{
+                                                width: "100%",
+                                                padding: "clamp(10px, 2.5vw, 12px) clamp(12px, 3vw, 16px)",
+                                                borderRadius: "12px",
+                                                border: `1px solid ${theme.inputBorder}`,
+                                                backgroundColor: theme.inputBg,
+                                                color: theme.textPrimary,
+                                                fontSize: "clamp(14px, 3.5vw, 15px)",
+                                                outline: "none",
+                                                transition: "all 0.2s",
+                                            }}
+                                            onFocus={(e) => {
+                                                e.currentTarget.style.borderColor = "#6366f1";
+                                                e.currentTarget.style.boxShadow = "0 0 0 3px rgba(99, 102, 241, 0.1)";
+                                            }}
+                                            onBlur={(e) => {
+                                                e.currentTarget.style.borderColor = theme.inputBorder;
+                                                e.currentTarget.style.boxShadow = "none";
+                                            }}
+                                        />
+                                    </div>
 
-                    <div className="flex gap-3">
-                        <Button variant="ghost" onClick={closeAndReset} className="flex-1">
-                            Cancel
-                        </Button>
-                        <Button onClick={handleAddBeneficiary} loading={saving} className="flex-1">
-                            Add Beneficiary
-                        </Button>
+                                    {/* Email */}
+                                    <div>
+                                        <label
+                                            style={{
+                                                display: "block",
+                                                fontSize: "clamp(13px, 3.2vw, 14px)",
+                                                fontWeight: "500",
+                                                color: theme.textSecondary,
+                                                marginBottom: "8px",
+                                            }}
+                                        >
+                                            Email Address
+                                        </label>
+                                        <input
+                                            type="email"
+                                            placeholder="john@example.com"
+                                            value={email}
+                                            onChange={(e) => setEmail(e.target.value)}
+                                            style={{
+                                                width: "100%",
+                                                padding: "clamp(10px, 2.5vw, 12px) clamp(12px, 3vw, 16px)",
+                                                borderRadius: "12px",
+                                                border: `1px solid ${theme.inputBorder}`,
+                                                backgroundColor: theme.inputBg,
+                                                color: theme.textPrimary,
+                                                fontSize: "clamp(14px, 3.5vw, 15px)",
+                                                outline: "none",
+                                                transition: "all 0.2s",
+                                            }}
+                                            onFocus={(e) => {
+                                                e.currentTarget.style.borderColor = "#6366f1";
+                                                e.currentTarget.style.boxShadow = "0 0 0 3px rgba(99, 102, 241, 0.1)";
+                                            }}
+                                            onBlur={(e) => {
+                                                e.currentTarget.style.borderColor = theme.inputBorder;
+                                                e.currentTarget.style.boxShadow = "none";
+                                            }}
+                                        />
+                                    </div>
+
+                                    {/* Relationship */}
+                                    <div>
+                                        <label
+                                            style={{
+                                                display: "block",
+                                                fontSize: "clamp(13px, 3.2vw, 14px)",
+                                                fontWeight: "500",
+                                                color: theme.textSecondary,
+                                                marginBottom: "8px",
+                                            }}
+                                        >
+                                            Relationship
+                                        </label>
+                                        <select
+                                            value={relationship}
+                                            onChange={(e) => setRelationship(e.target.value)}
+                                            style={{
+                                                width: "100%",
+                                                padding: "clamp(10px, 2.5vw, 12px) clamp(12px, 3vw, 16px)",
+                                                borderRadius: "12px",
+                                                border: `1px solid ${theme.inputBorder}`,
+                                                backgroundColor: theme.inputBg,
+                                                color: theme.textPrimary,
+                                                fontSize: "clamp(14px, 3.5vw, 15px)",
+                                                outline: "none",
+                                                transition: "all 0.2s",
+                                            }}
+                                            onFocus={(e) => {
+                                                e.currentTarget.style.borderColor = "#6366f1";
+                                                e.currentTarget.style.boxShadow = "0 0 0 3px rgba(99, 102, 241, 0.1)";
+                                            }}
+                                            onBlur={(e) => {
+                                                e.currentTarget.style.borderColor = theme.inputBorder;
+                                                e.currentTarget.style.boxShadow = "none";
+                                            }}
+                                        >
+                                            <option value="">Select relationship</option>
+                                            {relationships.map((rel) => (
+                                                <option key={rel} value={rel}>
+                                                    {rel}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+
+                                    {/* Info */}
+                                    <div
+                                        style={{
+                                            padding: "clamp(12px, 3vw, 16px)",
+                                            borderRadius: "12px",
+                                            backgroundColor: theme.infoBg,
+                                            border: `1px solid ${isDark ? "#1e40af" : "#bfdbfe"}`,
+                                        }}
+                                    >
+                                        <p style={{ fontSize: "clamp(12px, 3vw, 13px)", color: theme.infoText }}>
+                                            The beneficiary will receive an email notification when added. When your DMS is
+                                            triggered, they&apos;ll receive access instructions and their unique access key.
+                                        </p>
+                                    </div>
+
+                                    {/* Buttons */}
+                                    <div style={{ display: "flex", gap: "12px" }}>
+                                        <button
+                                            onClick={closeAndReset}
+                                            style={{
+                                                flex: "1",
+                                                padding: "clamp(10px, 2.5vw, 12px)",
+                                                borderRadius: "12px",
+                                                border: `1px solid ${theme.inputBorder}`,
+                                                backgroundColor: "transparent",
+                                                color: theme.textPrimary,
+                                                fontSize: "clamp(14px, 3.5vw, 15px)",
+                                                fontWeight: "600",
+                                                cursor: "pointer",
+                                                transition: "all 0.2s",
+                                            }}
+                                            onMouseEnter={(e) => {
+                                                e.currentTarget.style.backgroundColor = theme.hoverBg;
+                                            }}
+                                            onMouseLeave={(e) => {
+                                                e.currentTarget.style.backgroundColor = "transparent";
+                                            }}
+                                        >
+                                            Cancel
+                                        </button>
+                                        <button
+                                            onClick={handleAddBeneficiary}
+                                            disabled={saving}
+                                            style={{
+                                                flex: "1",
+                                                padding: "clamp(10px, 2.5vw, 12px)",
+                                                borderRadius: "12px",
+                                                background: "linear-gradient(135deg, #6366f1, #8b5cf6)",
+                                                color: "white",
+                                                fontSize: "clamp(14px, 3.5vw, 15px)",
+                                                fontWeight: "600",
+                                                border: "none",
+                                                cursor: saving ? "not-allowed" : "pointer",
+                                                opacity: saving ? 0.7 : 1,
+                                                boxShadow: "0 4px 12px rgba(99, 102, 241, 0.25)",
+                                                transition: "all 0.2s",
+                                            }}
+                                        >
+                                            {saving ? "Adding..." : "Add Beneficiary"}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                </div>
-            </Modal>
+                </>
+            )}
+
+            <style jsx>{`
+                .animate-spin {
+                    animation: spin 1s linear infinite;
+                }
+                @keyframes spin {
+                    from {
+                        transform: rotate(0deg);
+                    }
+                    to {
+                        transform: rotate(360deg);
+                    }
+                }
+                @media (min-width: 640px) {
+                    .header-wrapper {
+                        flex-direction: row;
+                        align-items: center;
+                        justify-content: space-between;
+                    }
+                    .add-btn {
+                        width: auto;
+                    }
+                    .beneficiary-content {
+                        flex-direction: row;
+                        align-items: flex-start;
+                    }
+                    .beneficiary-actions {
+                        border-top: none;
+                        border-left: 1px solid ${isDark ? "#1e293b" : "#e2e8f0"};
+                        padding-top: 0;
+                        padding-left: 16px;
+                        flex-direction: row;
+                    }
+                }
+                .beneficiary-card:hover {
+                    box-shadow: ${isDark ? "0 8px 24px rgba(0, 0, 0, 0.4)" : "0 8px 24px rgba(0, 0, 0, 0.12)"};
+                }
+            `}</style>
         </div>
     );
 }

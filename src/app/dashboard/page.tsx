@@ -11,9 +11,8 @@ import {
     Shield,
     AlertTriangle,
     CheckCircle,
+    Loader,
 } from "lucide-react";
-import Card, { CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
-import Badge from "@/components/ui/Badge";
 import { formatDistanceToNow } from "date-fns";
 
 interface Stats {
@@ -36,6 +35,15 @@ export default function DashboardPage() {
     const [stats, setStats] = useState<Stats | null>(null);
     const [activities, setActivities] = useState<ActivityItem[]>([]);
     const [loading, setLoading] = useState(true);
+    const [isDark, setIsDark] = useState(false);
+
+    useEffect(() => {
+        const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+        setIsDark(mediaQuery.matches);
+        const handler = (e: MediaQueryListEvent) => setIsDark(e.matches);
+        mediaQuery.addEventListener("change", handler);
+        return () => mediaQuery.removeEventListener("change", handler);
+    }, []);
 
     useEffect(() => {
         fetchData();
@@ -64,190 +72,437 @@ export default function DashboardPage() {
         }
     };
 
-    const getStatusVariant = (status: string) => {
+    const getStatusColor = (status: string) => {
         switch (status) {
             case "ACTIVE":
-                return "success";
+                return { bg: isDark ? "rgba(16, 185, 129, 0.2)" : "#d1fae5", text: isDark ? "#6ee7b7" : "#047857", border: isDark ? "#10b981" : "#6ee7b7" };
             case "PENDING":
-                return "warning";
+                return { bg: isDark ? "rgba(251, 191, 36, 0.2)" : "#fef3c7", text: isDark ? "#fbbf24" : "#b45309", border: isDark ? "#fbbf24" : "#fbbf24" };
             case "TRIGGERED":
-                return "danger";
+                return { bg: isDark ? "rgba(239, 68, 68, 0.2)" : "#fee2e2", text: isDark ? "#f87171" : "#dc2626", border: isDark ? "#ef4444" : "#f87171" };
             default:
-                return "default";
+                return { bg: isDark ? "rgba(100, 116, 139, 0.2)" : "#f1f5f9", text: isDark ? "#94a3b8" : "#64748b", border: isDark ? "#64748b" : "#94a3b8" };
         }
     };
 
     const getActivityIcon = (type: string) => {
         switch (type) {
             case "heartbeat":
-                return <Activity className="w-4 h-4 text-green-500" />;
+                return <Activity style={{ width: "16px", height: "16px", color: "#10b981" }} />;
             case "login":
-                return <Shield className="w-4 h-4 text-blue-500" />;
+                return <Shield style={{ width: "16px", height: "16px", color: "#3b82f6" }} />;
             case "asset_added":
-                return <Wallet className="w-4 h-4 text-purple-500" />;
+                return <Wallet style={{ width: "16px", height: "16px", color: "#8b5cf6" }} />;
             case "beneficiary_added":
-                return <Users className="w-4 h-4 text-indigo-500" />;
+                return <Users style={{ width: "16px", height: "16px", color: "#6366f1" }} />;
             case "dms_triggered":
-                return <AlertTriangle className="w-4 h-4 text-red-500" />;
+                return <AlertTriangle style={{ width: "16px", height: "16px", color: "#ef4444" }} />;
             default:
-                return <CheckCircle className="w-4 h-4 text-gray-500" />;
+                return <CheckCircle style={{ width: "16px", height: "16px", color: "#64748b" }} />;
         }
+    };
+
+    const theme = {
+        textPrimary: isDark ? "#f8fafc" : "#0f172a",
+        textSecondary: isDark ? "#94a3b8" : "#64748b",
+        textMuted: isDark ? "#64748b" : "#94a3b8",
+        cardBg: isDark ? "rgba(30, 41, 59, 0.7)" : "rgba(255, 255, 255, 0.8)",
+        cardBorder: isDark ? "#1e293b" : "#e2e8f0",
+        hoverBg: isDark ? "#1e293b" : "#f8fafc",
     };
 
     if (loading) {
         return (
-            <div className="flex items-center justify-center h-64">
-                <div className="animate-spin w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full" />
+            <div
+                style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    minHeight: "256px",
+                }}
+            >
+                <Loader style={{ width: "32px", height: "32px", color: "#6366f1" }} className="animate-spin" />
+                <style jsx>{`
+                    .animate-spin {
+                        animation: spin 1s linear infinite;
+                    }
+                    @keyframes spin {
+                        from {
+                            transform: rotate(0deg);
+                        }
+                        to {
+                            transform: rotate(360deg);
+                        }
+                    }
+                `}</style>
             </div>
         );
     }
 
+    const statusColor = getStatusColor(stats?.dmsStatus || "ACTIVE");
+
     return (
-        <div className="space-y-8">
+        <div style={{ display: "flex", flexDirection: "column", gap: "clamp(24px, 6vw, 32px)" }}>
             {/* Header */}
             <div>
-                <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+                <h1
+                    style={{
+                        fontSize: "clamp(24px, 6vw, 32px)",
+                        fontWeight: "700",
+                        color: theme.textPrimary,
+                        marginBottom: "4px",
+                    }}
+                >
                     Welcome back, {session?.user?.name || "User"}
                 </h1>
-                <p className="text-gray-500 dark:text-gray-400 mt-1">
+                <p
+                    style={{
+                        fontSize: "clamp(14px, 3.5vw, 16px)",
+                        color: theme.textSecondary,
+                    }}
+                >
                     Here&apos;s an overview of your digital legacy
                 </p>
             </div>
 
             {/* Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <Card variant="glass">
-                    <CardContent className="p-6">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-sm text-gray-500 dark:text-gray-400">Total Assets</p>
-                                <p className="text-3xl font-bold text-gray-900 dark:text-white mt-1">
-                                    {stats?.totalAssets || 0}
-                                </p>
-                            </div>
-                            <div className="w-12 h-12 rounded-xl bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
-                                <Wallet className="w-6 h-6 text-purple-600 dark:text-purple-400" />
-                            </div>
+            <div
+                style={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 240px), 1fr))",
+                    gap: "clamp(16px, 4vw, 24px)",
+                }}
+            >
+                {/* Total Assets */}
+                <div
+                    style={{
+                        backgroundColor: theme.cardBg,
+                        backdropFilter: "blur(12px)",
+                        borderRadius: "clamp(12px, 3vw, 16px)",
+                        padding: "clamp(16px, 4vw, 20px)",
+                        border: `1px solid ${theme.cardBorder}`,
+                        boxShadow: isDark ? "0 4px 12px rgba(0, 0, 0, 0.3)" : "0 4px 12px rgba(0, 0, 0, 0.05)",
+                    }}
+                >
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                        <div>
+                            <p
+                                style={{
+                                    fontSize: "clamp(12px, 3vw, 13px)",
+                                    color: theme.textSecondary,
+                                    marginBottom: "4px",
+                                }}
+                            >
+                                Total Assets
+                            </p>
+                            <p
+                                style={{
+                                    fontSize: "clamp(28px, 7vw, 36px)",
+                                    fontWeight: "700",
+                                    color: theme.textPrimary,
+                                }}
+                            >
+                                {stats?.totalAssets || 0}
+                            </p>
                         </div>
-                    </CardContent>
-                </Card>
+                        <div
+                            style={{
+                                width: "clamp(44px, 11vw, 48px)",
+                                height: "clamp(44px, 11vw, 48px)",
+                                borderRadius: "12px",
+                                backgroundColor: isDark ? "rgba(139, 92, 246, 0.2)" : "#f3e8ff",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                            }}
+                        >
+                            <Wallet style={{ width: "clamp(20px, 5vw, 24px)", height: "clamp(20px, 5vw, 24px)", color: "#8b5cf6" }} />
+                        </div>
+                    </div>
+                </div>
 
-                <Card variant="glass">
-                    <CardContent className="p-6">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-sm text-gray-500 dark:text-gray-400">Beneficiaries</p>
-                                <p className="text-3xl font-bold text-gray-900 dark:text-white mt-1">
-                                    {stats?.totalBeneficiaries || 0}
-                                </p>
-                            </div>
-                            <div className="w-12 h-12 rounded-xl bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center">
-                                <Users className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
-                            </div>
+                {/* Beneficiaries */}
+                <div
+                    style={{
+                        backgroundColor: theme.cardBg,
+                        backdropFilter: "blur(12px)",
+                        borderRadius: "clamp(12px, 3vw, 16px)",
+                        padding: "clamp(16px, 4vw, 20px)",
+                        border: `1px solid ${theme.cardBorder}`,
+                        boxShadow: isDark ? "0 4px 12px rgba(0, 0, 0, 0.3)" : "0 4px 12px rgba(0, 0, 0, 0.05)",
+                    }}
+                >
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                        <div>
+                            <p
+                                style={{
+                                    fontSize: "clamp(12px, 3vw, 13px)",
+                                    color: theme.textSecondary,
+                                    marginBottom: "4px",
+                                }}
+                            >
+                                Beneficiaries
+                            </p>
+                            <p
+                                style={{
+                                    fontSize: "clamp(28px, 7vw, 36px)",
+                                    fontWeight: "700",
+                                    color: theme.textPrimary,
+                                }}
+                            >
+                                {stats?.totalBeneficiaries || 0}
+                            </p>
                         </div>
-                    </CardContent>
-                </Card>
+                        <div
+                            style={{
+                                width: "clamp(44px, 11vw, 48px)",
+                                height: "clamp(44px, 11vw, 48px)",
+                                borderRadius: "12px",
+                                backgroundColor: isDark ? "rgba(99, 102, 241, 0.2)" : "#e0e7ff",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                            }}
+                        >
+                            <Users style={{ width: "clamp(20px, 5vw, 24px)", height: "clamp(20px, 5vw, 24px)", color: "#6366f1" }} />
+                        </div>
+                    </div>
+                </div>
 
-                <Card variant="glass">
-                    <CardContent className="p-6">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-sm text-gray-500 dark:text-gray-400">DMS Status</p>
-                                <div className="mt-2">
-                                    <Badge variant={getStatusVariant(stats?.dmsStatus || "ACTIVE")} size="md">
-                                        {stats?.dmsStatus || "ACTIVE"}
-                                    </Badge>
-                                </div>
-                            </div>
-                            <div className="w-12 h-12 rounded-xl bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
-                                <Shield className="w-6 h-6 text-green-600 dark:text-green-400" />
-                            </div>
+                {/* DMS Status */}
+                <div
+                    style={{
+                        backgroundColor: theme.cardBg,
+                        backdropFilter: "blur(12px)",
+                        borderRadius: "clamp(12px, 3vw, 16px)",
+                        padding: "clamp(16px, 4vw, 20px)",
+                        border: `1px solid ${theme.cardBorder}`,
+                        boxShadow: isDark ? "0 4px 12px rgba(0, 0, 0, 0.3)" : "0 4px 12px rgba(0, 0, 0, 0.05)",
+                    }}
+                >
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                        <div>
+                            <p
+                                style={{
+                                    fontSize: "clamp(12px, 3vw, 13px)",
+                                    color: theme.textSecondary,
+                                    marginBottom: "8px",
+                                }}
+                            >
+                                DMS Status
+                            </p>
+                            <span
+                                style={{
+                                    display: "inline-block",
+                                    padding: "6px 12px",
+                                    borderRadius: "8px",
+                                    fontSize: "clamp(12px, 3vw, 14px)",
+                                    fontWeight: "600",
+                                    backgroundColor: statusColor.bg,
+                                    color: statusColor.text,
+                                    border: `1px solid ${statusColor.border}`,
+                                }}
+                            >
+                                {stats?.dmsStatus || "ACTIVE"}
+                            </span>
                         </div>
-                    </CardContent>
-                </Card>
+                        <div
+                            style={{
+                                width: "clamp(44px, 11vw, 48px)",
+                                height: "clamp(44px, 11vw, 48px)",
+                                borderRadius: "12px",
+                                backgroundColor: isDark ? "rgba(16, 185, 129, 0.2)" : "#d1fae5",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                            }}
+                        >
+                            <Shield style={{ width: "clamp(20px, 5vw, 24px)", height: "clamp(20px, 5vw, 24px)", color: "#10b981" }} />
+                        </div>
+                    </div>
+                </div>
 
-                <Card variant="glass">
-                    <CardContent className="p-6">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-sm text-gray-500 dark:text-gray-400">DMS Period</p>
-                                <p className="text-3xl font-bold text-gray-900 dark:text-white mt-1">
-                                    {stats?.dmsPeriod || 30} <span className="text-lg">days</span>
-                                </p>
-                            </div>
-                            <div className="w-12 h-12 rounded-xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
-                                <Clock className="w-6 h-6 text-amber-600 dark:text-amber-400" />
-                            </div>
+                {/* DMS Period */}
+                <div
+                    style={{
+                        backgroundColor: theme.cardBg,
+                        backdropFilter: "blur(12px)",
+                        borderRadius: "clamp(12px, 3vw, 16px)",
+                        padding: "clamp(16px, 4vw, 20px)",
+                        border: `1px solid ${theme.cardBorder}`,
+                        boxShadow: isDark ? "0 4px 12px rgba(0, 0, 0, 0.3)" : "0 4px 12px rgba(0, 0, 0, 0.05)",
+                    }}
+                >
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                        <div>
+                            <p
+                                style={{
+                                    fontSize: "clamp(12px, 3vw, 13px)",
+                                    color: theme.textSecondary,
+                                    marginBottom: "4px",
+                                }}
+                            >
+                                DMS Period
+                            </p>
+                            <p
+                                style={{
+                                    fontSize: "clamp(28px, 7vw, 36px)",
+                                    fontWeight: "700",
+                                    color: theme.textPrimary,
+                                }}
+                            >
+                                {stats?.dmsPeriod || 30}{" "}
+                                <span style={{ fontSize: "clamp(14px, 3.5vw, 16px)" }}>days</span>
+                            </p>
                         </div>
-                    </CardContent>
-                </Card>
+                        <div
+                            style={{
+                                width: "clamp(44px, 11vw, 48px)",
+                                height: "clamp(44px, 11vw, 48px)",
+                                borderRadius: "12px",
+                                backgroundColor: isDark ? "rgba(251, 191, 36, 0.2)" : "#fef3c7",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                            }}
+                        >
+                            <Clock style={{ width: "clamp(20px, 5vw, 24px)", height: "clamp(20px, 5vw, 24px)", color: "#fbbf24" }} />
+                        </div>
+                    </div>
+                </div>
             </div>
 
             {/* Activity & Info */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Last Active Info */}
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                            <TrendingUp className="w-5 h-5 text-indigo-500" />
+            <div
+                style={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 320px), 1fr))",
+                    gap: "clamp(16px, 4vw, 24px)",
+                }}
+            >
+                {/* Activity Status */}
+                <div
+                    style={{
+                        backgroundColor: theme.cardBg,
+                        backdropFilter: "blur(12px)",
+                        borderRadius: "clamp(12px, 3vw, 16px)",
+                        padding: "clamp(16px, 4vw, 20px)",
+                        border: `1px solid ${theme.cardBorder}`,
+                        boxShadow: isDark ? "0 4px 12px rgba(0, 0, 0, 0.3)" : "0 4px 12px rgba(0, 0, 0, 0.05)",
+                    }}
+                >
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "16px" }}>
+                        <TrendingUp style={{ width: "20px", height: "20px", color: "#6366f1" }} />
+                        <h3 style={{ fontSize: "clamp(16px, 4vw, 18px)", fontWeight: "700", color: theme.textPrimary }}>
                             Activity Status
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="space-y-4">
-                            <div className="p-4 rounded-xl bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20">
-                                <p className="text-sm text-gray-500 dark:text-gray-400">Last Activity</p>
-                                <p className="text-xl font-semibold text-gray-900 dark:text-white mt-1">
-                                    {stats?.lastActive
-                                        ? formatDistanceToNow(new Date(stats.lastActive), { addSuffix: true })
-                                        : "Never"}
-                                </p>
-                            </div>
-                            <div className="p-4 rounded-xl bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20">
-                                <p className="text-sm text-gray-500 dark:text-gray-400">Timer Status</p>
-                                <p className="text-xl font-semibold text-gray-900 dark:text-white mt-1">
-                                    {stats?.dmsPeriod || 30} days until DMS activation
-                                </p>
-                            </div>
+                        </h3>
+                    </div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                        <div
+                            style={{
+                                padding: "clamp(14px, 3.5vw, 16px)",
+                                borderRadius: "12px",
+                                background: isDark
+                                    ? "linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(139, 92, 246, 0.2))"
+                                    : "linear-gradient(135deg, #e0e7ff, #f3e8ff)",
+                            }}
+                        >
+                            <p style={{ fontSize: "clamp(12px, 3vw, 13px)", color: theme.textSecondary }}>Last Activity</p>
+                            <p style={{ fontSize: "clamp(16px, 4vw, 18px)", fontWeight: "600", color: theme.textPrimary, marginTop: "4px" }}>
+                                {stats?.lastActive ? formatDistanceToNow(new Date(stats.lastActive), { addSuffix: true }) : "Never"}
+                            </p>
                         </div>
-                    </CardContent>
-                </Card>
+                        <div
+                            style={{
+                                padding: "clamp(14px, 3.5vw, 16px)",
+                                borderRadius: "12px",
+                                background: isDark
+                                    ? "linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(52, 211, 153, 0.2))"
+                                    : "linear-gradient(135deg, #d1fae5, #a7f3d0)",
+                            }}
+                        >
+                            <p style={{ fontSize: "clamp(12px, 3vw, 13px)", color: theme.textSecondary }}>Timer Status</p>
+                            <p style={{ fontSize: "clamp(16px, 4vw, 18px)", fontWeight: "600", color: theme.textPrimary, marginTop: "4px" }}>
+                                {stats?.dmsPeriod || 30} days until DMS activation
+                            </p>
+                        </div>
+                    </div>
+                </div>
 
                 {/* Recent Activity */}
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                            <Activity className="w-5 h-5 text-indigo-500" />
+                <div
+                    style={{
+                        backgroundColor: theme.cardBg,
+                        backdropFilter: "blur(12px)",
+                        borderRadius: "clamp(12px, 3vw, 16px)",
+                        padding: "clamp(16px, 4vw, 20px)",
+                        border: `1px solid ${theme.cardBorder}`,
+                        boxShadow: isDark ? "0 4px 12px rgba(0, 0, 0, 0.3)" : "0 4px 12px rgba(0, 0, 0, 0.05)",
+                    }}
+                >
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "16px" }}>
+                        <Activity style={{ width: "20px", height: "20px", color: "#6366f1" }} />
+                        <h3 style={{ fontSize: "clamp(16px, 4vw, 18px)", fontWeight: "700", color: theme.textPrimary }}>
                             Recent Activity
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="space-y-3">
-                            {activities.length > 0 ? (
-                                activities.slice(0, 5).map((activity) => (
+                        </h3>
+                    </div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                        {activities.length > 0 ? (
+                            activities.slice(0, 5).map((activity) => (
+                                <div
+                                    key={activity.id}
+                                    style={{
+                                        display: "flex",
+                                        alignItems: "center",
+                                        gap: "12px",
+                                        padding: "clamp(10px, 2.5vw, 12px)",
+                                        borderRadius: "10px",
+                                        transition: "background 0.2s",
+                                        cursor: "default",
+                                    }}
+                                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = theme.hoverBg)}
+                                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
+                                >
                                     <div
-                                        key={activity.id}
-                                        className="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
+                                        style={{
+                                            width: "32px",
+                                            height: "32px",
+                                            borderRadius: "8px",
+                                            backgroundColor: isDark ? "#1e293b" : "#f1f5f9",
+                                            display: "flex",
+                                            alignItems: "center",
+                                            justifyContent: "center",
+                                            flexShrink: 0,
+                                        }}
                                     >
-                                        <div className="w-8 h-8 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
-                                            {getActivityIcon(activity.type)}
-                                        </div>
-                                        <div className="flex-1 min-w-0">
-                                            <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
-                                                {activity.message}
-                                            </p>
-                                            <p className="text-xs text-gray-500">
-                                                {formatDistanceToNow(new Date(activity.createdAt), { addSuffix: true })}
-                                            </p>
-                                        </div>
+                                        {getActivityIcon(activity.type)}
                                     </div>
-                                ))
-                            ) : (
-                                <p className="text-center text-gray-500 py-4">No activity yet</p>
-                            )}
-                        </div>
-                    </CardContent>
-                </Card>
+                                    <div style={{ flex: "1", minWidth: "0" }}>
+                                        <p
+                                            style={{
+                                                fontSize: "clamp(13px, 3.2vw, 14px)",
+                                                fontWeight: "500",
+                                                color: theme.textPrimary,
+                                                overflow: "hidden",
+                                                textOverflow: "ellipsis",
+                                                whiteSpace: "nowrap",
+                                            }}
+                                        >
+                                            {activity.message}
+                                        </p>
+                                        <p style={{ fontSize: "clamp(11px, 2.7vw, 12px)", color: theme.textSecondary }}>
+                                            {formatDistanceToNow(new Date(activity.createdAt), { addSuffix: true })}
+                                        </p>
+                                    </div>
+                                </div>
+                            ))
+                        ) : (
+                            <p style={{ textAlign: "center", color: theme.textSecondary, padding: "16px", fontSize: "clamp(13px, 3.2vw, 14px)" }}>
+                                No activity yet
+                            </p>
+                        )}
+                    </div>
+                </div>
             </div>
         </div>
     );

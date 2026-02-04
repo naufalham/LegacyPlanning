@@ -8,16 +8,11 @@ import {
     FileText,
     Bitcoin,
     Trash2,
-    Eye,
     EyeOff,
     Copy,
     Check,
+    X,
 } from "lucide-react";
-import Card, { CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/Card";
-import Button from "@/components/ui/Button";
-import Input from "@/components/ui/Input";
-import Modal from "@/components/ui/Modal";
-import Badge from "@/components/ui/Badge";
 import { formatDistanceToNow } from "date-fns";
 import toast from "react-hot-toast";
 
@@ -30,11 +25,11 @@ interface Asset {
 }
 
 const assetTypes = [
-    { value: "subscription", label: "Subscription", icon: CreditCard, color: "text-blue-500" },
-    { value: "investment", label: "Investment", icon: Wallet, color: "text-green-500" },
-    { value: "legal_document", label: "Legal Document", icon: FileText, color: "text-amber-500" },
-    { value: "crypto", label: "Crypto Wallet", icon: Bitcoin, color: "text-orange-500" },
-    { value: "text_note", label: "Text Note", icon: FileText, color: "text-purple-500" },
+    { value: "subscription", label: "Subscription", icon: CreditCard, color: "#3b82f6" },
+    { value: "investment", label: "Investment", icon: Wallet, color: "#10b981" },
+    { value: "legal_document", label: "Legal Document", icon: FileText, color: "#f59e0b" },
+    { value: "crypto", label: "Crypto Wallet", icon: Bitcoin, color: "#f97316" },
+    { value: "text_note", label: "Text Note", icon: FileText, color: "#a855f7" },
 ];
 
 export default function AssetsPage() {
@@ -42,6 +37,7 @@ export default function AssetsPage() {
     const [loading, setLoading] = useState(true);
     const [showAddModal, setShowAddModal] = useState(false);
     const [saving, setSaving] = useState(false);
+    const [isDark, setIsDark] = useState(false);
 
     // Form state
     const [assetName, setAssetName] = useState("");
@@ -50,6 +46,14 @@ export default function AssetsPage() {
     const [sensitiveData, setSensitiveData] = useState("");
     const [encryptionKey, setEncryptionKey] = useState("");
     const [copiedKey, setCopiedKey] = useState(false);
+
+    useEffect(() => {
+        const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+        setIsDark(mediaQuery.matches);
+        const handler = (e: MediaQueryListEvent) => setIsDark(e.matches);
+        mediaQuery.addEventListener("change", handler);
+        return () => mediaQuery.removeEventListener("change", handler);
+    }, []);
 
     useEffect(() => {
         fetchAssets();
@@ -147,205 +151,831 @@ export default function AssetsPage() {
         const assetType = assetTypes.find((t) => t.value === type);
         if (assetType) {
             const Icon = assetType.icon;
-            return <Icon className={`w-5 h-5 ${assetType.color}`} />;
+            return <Icon style={{ width: "20px", height: "20px", color: assetType.color }} />;
         }
-        return <FileText className="w-5 h-5 text-gray-500" />;
+        return <FileText style={{ width: "20px", height: "20px", color: isDark ? "#9ca3af" : "#6b7280" }} />;
+    };
+
+    const theme = {
+        textPrimary: isDark ? "#f8fafc" : "#111827",
+        textSecondary: isDark ? "#94a3b8" : "#64748b",
+        textMuted: isDark ? "#64748b" : "#9ca3af",
+        cardBg: isDark ? "rgba(30, 41, 59, 0.7)" : "rgba(255, 255, 255, 0.7)",
+        cardBorder: isDark ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.05)",
+        inputBg: isDark ? "#1e293b" : "#f9fafb",
+        inputBorder: isDark ? "#334155" : "#e5e7eb",
+        hoverBg: isDark ? "#1e293b" : "#f1f5f9",
+        dangerBg: isDark ? "rgba(239, 68, 68, 0.1)" : "#fef2f2",
+        dangerText: isDark ? "#fca5a5" : "#dc2626",
+        successBg: isDark ? "rgba(34, 197, 94, 0.1)" : "#f0fdf4",
+        successText: isDark ? "#86efac" : "#16a34a",
+        warningBg: isDark ? "rgba(251, 146, 60, 0.1)" : "#fffbeb",
+        warningText: isDark ? "#fdba74" : "#d97706",
     };
 
     if (loading) {
         return (
-            <div className="flex items-center justify-center h-64">
-                <div className="animate-spin w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full" />
+            <div
+                style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    minHeight: "400px",
+                }}
+            >
+                <div
+                    style={{
+                        width: "32px",
+                        height: "32px",
+                        border: "4px solid #6366f1",
+                        borderTopColor: "transparent",
+                        borderRadius: "50%",
+                    }}
+                    className="animate-spin"
+                />
             </div>
         );
     }
 
     return (
-        <div className="space-y-8">
+        <div>
             {/* Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                <div>
-                    <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Assets</h1>
-                    <p className="text-gray-500 dark:text-gray-400 mt-1">
-                        Manage your encrypted digital assets
-                    </p>
+            <div
+                style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "clamp(12px, 3vw, 16px)",
+                    marginBottom: "clamp(24px, 6vw, 32px)",
+                }}
+            >
+                <div
+                    style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "8px",
+                    }}
+                    className="header-wrapper"
+                >
+                    <div>
+                        <h1
+                            style={{
+                                fontSize: "clamp(24px, 6vw, 32px)",
+                                fontWeight: "700",
+                                color: theme.textPrimary,
+                            }}
+                        >
+                            Assets
+                        </h1>
+                        <p
+                            style={{
+                                fontSize: "clamp(13px, 3.2vw, 15px)",
+                                color: theme.textSecondary,
+                                marginTop: "4px",
+                            }}
+                        >
+                            Manage your encrypted digital assets
+                        </p>
+                    </div>
+                    <button
+                        onClick={() => setShowAddModal(true)}
+                        style={{
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            gap: "8px",
+                            padding: "clamp(10px, 2.5vw, 12px) clamp(16px, 4vw, 20px)",
+                            borderRadius: "12px",
+                            background: "linear-gradient(135deg, #6366f1, #8b5cf6)",
+                            color: "white",
+                            fontSize: "clamp(14px, 3.5vw, 15px)",
+                            fontWeight: "600",
+                            border: "none",
+                            cursor: "pointer",
+                            boxShadow: "0 4px 12px rgba(99, 102, 241, 0.25)",
+                            transition: "all 0.2s",
+                            width: "100%",
+                        }}
+                        className="add-btn"
+                        onMouseEnter={(e) => {
+                            e.currentTarget.style.transform = "translateY(-2px)";
+                            e.currentTarget.style.boxShadow = "0 6px 16px rgba(99, 102, 241, 0.35)";
+                        }}
+                        onMouseLeave={(e) => {
+                            e.currentTarget.style.transform = "translateY(0)";
+                            e.currentTarget.style.boxShadow = "0 4px 12px rgba(99, 102, 241, 0.25)";
+                        }}
+                    >
+                        <Plus style={{ width: "20px", height: "20px" }} />
+                        Add Asset
+                    </button>
                 </div>
-                <Button onClick={() => setShowAddModal(true)}>
-                    <Plus className="w-5 h-5 mr-2" />
-                    Add Asset
-                </Button>
             </div>
 
             {/* Assets Grid */}
             {assets.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div
+                    style={{
+                        display: "grid",
+                        gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 280px), 1fr))",
+                        gap: "clamp(16px, 4vw, 24px)",
+                    }}
+                >
                     {assets.map((asset) => (
-                        <Card key={asset.id} variant="glass" className="hover:shadow-xl transition-shadow">
-                            <CardContent className="p-6">
-                                <div className="flex items-start justify-between">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-12 h-12 rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
-                                            {getAssetIcon(asset.type)}
-                                        </div>
-                                        <div>
-                                            <h3 className="font-semibold text-gray-900 dark:text-white">
-                                                {asset.name}
-                                            </h3>
-                                            {asset.platform && (
-                                                <p className="text-sm text-gray-500">{asset.platform}</p>
-                                            )}
-                                        </div>
-                                    </div>
-                                    <button
-                                        onClick={() => handleDeleteAsset(asset.id)}
-                                        className="p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 text-gray-400 hover:text-red-500 transition-colors"
+                        <div
+                            key={asset.id}
+                            style={{
+                                backgroundColor: theme.cardBg,
+                                backdropFilter: "blur(12px)",
+                                borderRadius: "16px",
+                                padding: "clamp(16px, 4vw, 24px)",
+                                border: `1px solid ${theme.cardBorder}`,
+                                boxShadow: isDark
+                                    ? "0 4px 12px rgba(0, 0, 0, 0.3)"
+                                    : "0 4px 12px rgba(0, 0, 0, 0.08)",
+                                transition: "all 0.2s",
+                            }}
+                            className="asset-card"
+                        >
+                            <div
+                                style={{
+                                    display: "flex",
+                                    alignItems: "flex-start",
+                                    justifyContent: "space-between",
+                                    marginBottom: "16px",
+                                }}
+                            >
+                                <div style={{ display: "flex", alignItems: "center", gap: "12px", flex: "1" }}>
+                                    <div
+                                        style={{
+                                            width: "48px",
+                                            height: "48px",
+                                            borderRadius: "12px",
+                                            backgroundColor: isDark ? "#1e293b" : "#f1f5f9",
+                                            display: "flex",
+                                            alignItems: "center",
+                                            justifyContent: "center",
+                                            flexShrink: 0,
+                                        }}
                                     >
-                                        <Trash2 className="w-4 h-4" />
-                                    </button>
-                                </div>
-                                <div className="mt-4 flex items-center justify-between">
-                                    <Badge variant="info" size="sm">
-                                        {assetTypes.find((t) => t.value === asset.type)?.label || asset.type}
-                                    </Badge>
-                                    <span className="text-xs text-gray-500">
-                                        {formatDistanceToNow(new Date(asset.createdAt), { addSuffix: true })}
-                                    </span>
-                                </div>
-                                <div className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-800">
-                                    <div className="flex items-center gap-2 text-sm text-gray-500">
-                                        <EyeOff className="w-4 h-4" />
-                                        <span>Encrypted & Secure</span>
+                                        {getAssetIcon(asset.type)}
+                                    </div>
+                                    <div style={{ minWidth: 0, flex: 1 }}>
+                                        <h3
+                                            style={{
+                                                fontSize: "clamp(15px, 3.7vw, 16px)",
+                                                fontWeight: "600",
+                                                color: theme.textPrimary,
+                                                overflow: "hidden",
+                                                textOverflow: "ellipsis",
+                                                whiteSpace: "nowrap",
+                                            }}
+                                        >
+                                            {asset.name}
+                                        </h3>
+                                        {asset.platform && (
+                                            <p
+                                                style={{
+                                                    fontSize: "clamp(12px, 3vw, 13px)",
+                                                    color: theme.textSecondary,
+                                                    marginTop: "2px",
+                                                }}
+                                            >
+                                                {asset.platform}
+                                            </p>
+                                        )}
                                     </div>
                                 </div>
-                            </CardContent>
-                        </Card>
+                                <button
+                                    onClick={() => handleDeleteAsset(asset.id)}
+                                    style={{
+                                        padding: "8px",
+                                        borderRadius: "8px",
+                                        background: "none",
+                                        border: "none",
+                                        cursor: "pointer",
+                                        color: theme.textSecondary,
+                                        transition: "all 0.2s",
+                                        flexShrink: 0,
+                                    }}
+                                    onMouseEnter={(e) => {
+                                        e.currentTarget.style.backgroundColor = theme.dangerBg;
+                                        e.currentTarget.style.color = theme.dangerText;
+                                    }}
+                                    onMouseLeave={(e) => {
+                                        e.currentTarget.style.backgroundColor = "transparent";
+                                        e.currentTarget.style.color = theme.textSecondary;
+                                    }}
+                                >
+                                    <Trash2 style={{ width: "16px", height: "16px" }} />
+                                </button>
+                            </div>
+
+                            <div
+                                style={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "space-between",
+                                    marginBottom: "12px",
+                                }}
+                            >
+                                <span
+                                    style={{
+                                        padding: "4px 12px",
+                                        borderRadius: "8px",
+                                        fontSize: "clamp(11px, 2.7vw, 12px)",
+                                        fontWeight: "600",
+                                        backgroundColor: "#dbeafe",
+                                        color: "#1e40af",
+                                    }}
+                                >
+                                    {assetTypes.find((t) => t.value === asset.type)?.label || asset.type}
+                                </span>
+                                <span
+                                    style={{
+                                        fontSize: "clamp(11px, 2.7vw, 12px)",
+                                        color: theme.textMuted,
+                                    }}
+                                >
+                                    {formatDistanceToNow(new Date(asset.createdAt), { addSuffix: true })}
+                                </span>
+                            </div>
+
+                            <div
+                                style={{
+                                    paddingTop: "12px",
+                                    borderTop: `1px solid ${isDark ? "#1e293b" : "#e2e8f0"}`,
+                                }}
+                            >
+                                <div
+                                    style={{
+                                        display: "flex",
+                                        alignItems: "center",
+                                        gap: "8px",
+                                        fontSize: "clamp(12px, 3vw, 13px)",
+                                        color: theme.textSecondary,
+                                    }}
+                                >
+                                    <EyeOff style={{ width: "16px", height: "16px" }} />
+                                    <span>Encrypted & Secure</span>
+                                </div>
+                            </div>
+                        </div>
                     ))}
                 </div>
             ) : (
-                <Card variant="bordered" className="text-center py-12">
-                    <Wallet className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">No assets yet</h3>
-                    <p className="text-gray-500 mt-1">Add your first encrypted asset to get started</p>
-                    <Button className="mt-4" onClick={() => setShowAddModal(true)}>
-                        <Plus className="w-5 h-5 mr-2" />
+                <div
+                    style={{
+                        backgroundColor: theme.cardBg,
+                        backdropFilter: "blur(12px)",
+                        borderRadius: "16px",
+                        padding: "clamp(32px, 8vw, 48px)",
+                        border: `1px solid ${theme.cardBorder}`,
+                        textAlign: "center",
+                    }}
+                >
+                    <Wallet
+                        style={{
+                            width: "clamp(40px, 10vw, 48px)",
+                            height: "clamp(40px, 10vw, 48px)",
+                            color: theme.textMuted,
+                            margin: "0 auto clamp(12px, 3vw, 16px)",
+                        }}
+                    />
+                    <h3
+                        style={{
+                            fontSize: "clamp(16px, 4vw, 18px)",
+                            fontWeight: "600",
+                            color: theme.textPrimary,
+                        }}
+                    >
+                        No assets yet
+                    </h3>
+                    <p
+                        style={{
+                            fontSize: "clamp(13px, 3.2vw, 14px)",
+                            color: theme.textSecondary,
+                            marginTop: "4px",
+                            marginBottom: "clamp(16px, 4vw, 20px)",
+                        }}
+                    >
+                        Add your first encrypted asset to get started
+                    </p>
+                    <button
+                        onClick={() => setShowAddModal(true)}
+                        style={{
+                            display: "inline-flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            gap: "8px",
+                            padding: "clamp(10px, 2.5vw, 12px) clamp(16px, 4vw, 20px)",
+                            borderRadius: "12px",
+                            background: "linear-gradient(135deg, #6366f1, #8b5cf6)",
+                            color: "white",
+                            fontSize: "clamp(14px, 3.5vw, 15px)",
+                            fontWeight: "600",
+                            border: "none",
+                            cursor: "pointer",
+                            boxShadow: "0 4px 12px rgba(99, 102, 241, 0.25)",
+                        }}
+                    >
+                        <Plus style={{ width: "20px", height: "20px" }} />
                         Add Asset
-                    </Button>
-                </Card>
+                    </button>
+                </div>
             )}
 
             {/* Add Asset Modal */}
-            <Modal isOpen={showAddModal} onClose={closeAndReset} title="Add New Asset" size="lg">
-                {!encryptionKey ? (
-                    <div className="space-y-5">
-                        <Input
-                            label="Asset Name"
-                            placeholder="e.g., Netflix Account, Bitcoin Wallet"
-                            value={assetName}
-                            onChange={(e) => setAssetName(e.target.value)}
-                        />
-
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                Asset Type
-                            </label>
-                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                                {assetTypes.map((type) => (
-                                    <button
-                                        key={type.value}
-                                        onClick={() => setAssetType(type.value)}
-                                        className={`flex items-center gap-2 p-3 rounded-xl border-2 transition-all ${assetType === type.value
-                                                ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20"
-                                                : "border-gray-200 dark:border-gray-700 hover:border-gray-300"
-                                            }`}
-                                    >
-                                        <type.icon className={`w-5 h-5 ${type.color}`} />
-                                        <span className="text-sm font-medium">{type.label}</span>
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-
-                        <Input
-                            label="Platform (Optional)"
-                            placeholder="e.g., Binance, Google Drive"
-                            value={platform}
-                            onChange={(e) => setPlatform(e.target.value)}
-                        />
-
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                Sensitive Data (will be encrypted)
-                            </label>
-                            <textarea
-                                className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 min-h-[120px] font-mono text-sm"
-                                placeholder="Enter passwords, recovery phrases, important notes..."
-                                value={sensitiveData}
-                                onChange={(e) => setSensitiveData(e.target.value)}
-                            />
-                        </div>
-
-                        <div className="p-4 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800">
-                            <p className="text-sm text-amber-700 dark:text-amber-400">
-                                ⚠️ Your data will be encrypted locally. The encryption key will be shown after saving.
-                                <strong className="block mt-1">You must save this key securely - we cannot recover it!</strong>
-                            </p>
-                        </div>
-
-                        <div className="flex gap-3">
-                            <Button variant="ghost" onClick={closeAndReset} className="flex-1">
-                                Cancel
-                            </Button>
-                            <Button onClick={handleAddAsset} loading={saving} className="flex-1">
-                                Encrypt & Save
-                            </Button>
-                        </div>
-                    </div>
-                ) : (
-                    <div className="space-y-5">
-                        <div className="text-center py-4">
-                            <div className="w-16 h-16 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center mx-auto mb-4">
-                                <Check className="w-8 h-8 text-green-600" />
-                            </div>
-                            <h3 className="text-xl font-bold text-gray-900 dark:text-white">Asset Saved!</h3>
-                            <p className="text-gray-500 mt-1">Your data has been encrypted and stored securely.</p>
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                🔐 Your Encryption Key
-                            </label>
-                            <div className="relative">
-                                <textarea
-                                    readOnly
-                                    value={encryptionKey}
-                                    className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white font-mono text-xs min-h-[100px]"
-                                />
-                                <button
-                                    onClick={copyKey}
-                                    className="absolute top-2 right-2 p-2 rounded-lg bg-white dark:bg-gray-700 shadow hover:bg-gray-50 transition-colors"
+            {showAddModal && (
+                <>
+                    {/* Overlay */}
+                    <div
+                        style={{
+                            position: "fixed",
+                            inset: "0",
+                            backgroundColor: "rgba(0, 0, 0, 0.5)",
+                            backdropFilter: "blur(4px)",
+                            zIndex: "50",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            padding: "clamp(16px, 4vw, 24px)",
+                        }}
+                        onClick={closeAndReset}
+                    >
+                        {/* Modal */}
+                        <div
+                            style={{
+                                backgroundColor: isDark ? "#0f172a" : "#ffffff",
+                                borderRadius: "16px",
+                                width: "100%",
+                                maxWidth: "600px",
+                                maxHeight: "90vh",
+                                overflow: "auto",
+                                boxShadow: isDark
+                                    ? "0 20px 60px rgba(0, 0, 0, 0.5)"
+                                    : "0 20px 60px rgba(0, 0, 0, 0.15)",
+                            }}
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            {/* Modal Header */}
+                            <div
+                                style={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "space-between",
+                                    padding: "clamp(16px, 4vw, 24px)",
+                                    borderBottom: `1px solid ${isDark ? "#1e293b" : "#e2e8f0"}`,
+                                }}
+                            >
+                                <h2
+                                    style={{
+                                        fontSize: "clamp(18px, 4.5vw, 20px)",
+                                        fontWeight: "700",
+                                        color: theme.textPrimary,
+                                    }}
                                 >
-                                    {copiedKey ? (
-                                        <Check className="w-4 h-4 text-green-500" />
-                                    ) : (
-                                        <Copy className="w-4 h-4 text-gray-500" />
-                                    )}
+                                    Add New Asset
+                                </h2>
+                                <button
+                                    onClick={closeAndReset}
+                                    style={{
+                                        padding: "8px",
+                                        borderRadius: "8px",
+                                        background: "none",
+                                        border: "none",
+                                        cursor: "pointer",
+                                        color: theme.textSecondary,
+                                        transition: "background 0.2s",
+                                    }}
+                                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = theme.hoverBg)}
+                                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
+                                >
+                                    <X style={{ width: "20px", height: "20px" }} />
                                 </button>
                             </div>
-                        </div>
 
-                        <div className="p-4 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
-                            <p className="text-sm text-red-700 dark:text-red-400">
-                                ⚠️ <strong>IMPORTANT:</strong> Save this key somewhere safe (password manager, secure note).
-                                Without this key, your data cannot be decrypted. We do not store this key!
-                            </p>
-                        </div>
+                            {/* Modal Content */}
+                            <div style={{ padding: "clamp(16px, 4vw, 24px)" }}>
+                                {!encryptionKey ? (
+                                    <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+                                        {/* Asset Name */}
+                                        <div>
+                                            <label
+                                                style={{
+                                                    display: "block",
+                                                    fontSize: "clamp(13px, 3.2vw, 14px)",
+                                                    fontWeight: "500",
+                                                    color: theme.textSecondary,
+                                                    marginBottom: "8px",
+                                                }}
+                                            >
+                                                Asset Name
+                                            </label>
+                                            <input
+                                                type="text"
+                                                placeholder="e.g., Netflix Account, Bitcoin Wallet"
+                                                value={assetName}
+                                                onChange={(e) => setAssetName(e.target.value)}
+                                                style={{
+                                                    width: "100%",
+                                                    padding: "clamp(10px, 2.5vw, 12px) clamp(12px, 3vw, 16px)",
+                                                    borderRadius: "12px",
+                                                    border: `1px solid ${theme.inputBorder}`,
+                                                    backgroundColor: theme.inputBg,
+                                                    color: theme.textPrimary,
+                                                    fontSize: "clamp(14px, 3.5vw, 15px)",
+                                                    outline: "none",
+                                                    transition: "all 0.2s",
+                                                }}
+                                                onFocus={(e) => {
+                                                    e.currentTarget.style.borderColor = "#6366f1";
+                                                    e.currentTarget.style.boxShadow = "0 0 0 3px rgba(99, 102, 241, 0.1)";
+                                                }}
+                                                onBlur={(e) => {
+                                                    e.currentTarget.style.borderColor = theme.inputBorder;
+                                                    e.currentTarget.style.boxShadow = "none";
+                                                }}
+                                            />
+                                        </div>
 
-                        <Button onClick={closeAndReset} className="w-full">
-                            I&apos;ve Saved My Key
-                        </Button>
+                                        {/* Asset Type */}
+                                        <div>
+                                            <label
+                                                style={{
+                                                    display: "block",
+                                                    fontSize: "clamp(13px, 3.2vw, 14px)",
+                                                    fontWeight: "500",
+                                                    color: theme.textSecondary,
+                                                    marginBottom: "8px",
+                                                }}
+                                            >
+                                                Asset Type
+                                            </label>
+                                            <div
+                                                style={{
+                                                    display: "grid",
+                                                    gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
+                                                    gap: "12px",
+                                                }}
+                                            >
+                                                {assetTypes.map((type) => {
+                                                    const isSelected = assetType === type.value;
+                                                    return (
+                                                        <button
+                                                            key={type.value}
+                                                            onClick={() => setAssetType(type.value)}
+                                                            style={{
+                                                                display: "flex",
+                                                                alignItems: "center",
+                                                                gap: "8px",
+                                                                padding: "clamp(10px, 2.5vw, 12px)",
+                                                                borderRadius: "12px",
+                                                                border: isSelected
+                                                                    ? "2px solid #6366f1"
+                                                                    : `2px solid ${theme.inputBorder}`,
+                                                                backgroundColor: isSelected
+                                                                    ? isDark
+                                                                        ? "rgba(99, 102, 241, 0.1)"
+                                                                        : "#eef2ff"
+                                                                    : "transparent",
+                                                                cursor: "pointer",
+                                                                transition: "all 0.2s",
+                                                                fontSize: "clamp(13px, 3.2vw, 14px)",
+                                                                fontWeight: "500",
+                                                                color: theme.textPrimary,
+                                                            }}
+                                                            onMouseEnter={(e) => {
+                                                                if (!isSelected) {
+                                                                    e.currentTarget.style.borderColor = "#94a3b8";
+                                                                }
+                                                            }}
+                                                            onMouseLeave={(e) => {
+                                                                if (!isSelected) {
+                                                                    e.currentTarget.style.borderColor = theme.inputBorder;
+                                                                }
+                                                            }}
+                                                        >
+                                                            <type.icon style={{ width: "20px", height: "20px", color: type.color }} />
+                                                            <span>{type.label}</span>
+                                                        </button>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+
+                                        {/* Platform */}
+                                        <div>
+                                            <label
+                                                style={{
+                                                    display: "block",
+                                                    fontSize: "clamp(13px, 3.2vw, 14px)",
+                                                    fontWeight: "500",
+                                                    color: theme.textSecondary,
+                                                    marginBottom: "8px",
+                                                }}
+                                            >
+                                                Platform (Optional)
+                                            </label>
+                                            <input
+                                                type="text"
+                                                placeholder="e.g., Binance, Google Drive"
+                                                value={platform}
+                                                onChange={(e) => setPlatform(e.target.value)}
+                                                style={{
+                                                    width: "100%",
+                                                    padding: "clamp(10px, 2.5vw, 12px) clamp(12px, 3vw, 16px)",
+                                                    borderRadius: "12px",
+                                                    border: `1px solid ${theme.inputBorder}`,
+                                                    backgroundColor: theme.inputBg,
+                                                    color: theme.textPrimary,
+                                                    fontSize: "clamp(14px, 3.5vw, 15px)",
+                                                    outline: "none",
+                                                    transition: "all 0.2s",
+                                                }}
+                                                onFocus={(e) => {
+                                                    e.currentTarget.style.borderColor = "#6366f1";
+                                                    e.currentTarget.style.boxShadow = "0 0 0 3px rgba(99, 102, 241, 0.1)";
+                                                }}
+                                                onBlur={(e) => {
+                                                    e.currentTarget.style.borderColor = theme.inputBorder;
+                                                    e.currentTarget.style.boxShadow = "none";
+                                                }}
+                                            />
+                                        </div>
+
+                                        {/* Sensitive Data */}
+                                        <div>
+                                            <label
+                                                style={{
+                                                    display: "block",
+                                                    fontSize: "clamp(13px, 3.2vw, 14px)",
+                                                    fontWeight: "500",
+                                                    color: theme.textSecondary,
+                                                    marginBottom: "8px",
+                                                }}
+                                            >
+                                                Sensitive Data (will be encrypted)
+                                            </label>
+                                            <textarea
+                                                placeholder="Enter passwords, recovery phrases, important notes..."
+                                                value={sensitiveData}
+                                                onChange={(e) => setSensitiveData(e.target.value)}
+                                                style={{
+                                                    width: "100%",
+                                                    padding: "clamp(10px, 2.5vw, 12px) clamp(12px, 3vw, 16px)",
+                                                    borderRadius: "12px",
+                                                    border: `1px solid ${theme.inputBorder}`,
+                                                    backgroundColor: theme.inputBg,
+                                                    color: theme.textPrimary,
+                                                    fontSize: "clamp(13px, 3.2vw, 14px)",
+                                                    fontFamily: "monospace",
+                                                    outline: "none",
+                                                    transition: "all 0.2s",
+                                                    minHeight: "120px",
+                                                    resize: "vertical",
+                                                }}
+                                                onFocus={(e) => {
+                                                    e.currentTarget.style.borderColor = "#6366f1";
+                                                    e.currentTarget.style.boxShadow = "0 0 0 3px rgba(99, 102, 241, 0.1)";
+                                                }}
+                                                onBlur={(e) => {
+                                                    e.currentTarget.style.borderColor = theme.inputBorder;
+                                                    e.currentTarget.style.boxShadow = "none";
+                                                }}
+                                            />
+                                        </div>
+
+                                        {/* Warning */}
+                                        <div
+                                            style={{
+                                                padding: "clamp(12px, 3vw, 16px)",
+                                                borderRadius: "12px",
+                                                backgroundColor: theme.warningBg,
+                                                border: `1px solid ${isDark ? "#92400e" : "#fcd34d"}`,
+                                            }}
+                                        >
+                                            <p style={{ fontSize: "clamp(12px, 3vw, 13px)", color: theme.warningText }}>
+                                                Your data will be encrypted locally. The encryption key will be shown after
+                                                saving.
+                                                <strong style={{ display: "block", marginTop: "4px" }}>
+                                                    You must save this key securely - we cannot recover it!
+                                                </strong>
+                                            </p>
+                                        </div>
+
+                                        {/* Buttons */}
+                                        <div style={{ display: "flex", gap: "12px" }}>
+                                            <button
+                                                onClick={closeAndReset}
+                                                style={{
+                                                    flex: "1",
+                                                    padding: "clamp(10px, 2.5vw, 12px)",
+                                                    borderRadius: "12px",
+                                                    border: `1px solid ${theme.inputBorder}`,
+                                                    backgroundColor: "transparent",
+                                                    color: theme.textPrimary,
+                                                    fontSize: "clamp(14px, 3.5vw, 15px)",
+                                                    fontWeight: "600",
+                                                    cursor: "pointer",
+                                                    transition: "all 0.2s",
+                                                }}
+                                                onMouseEnter={(e) => {
+                                                    e.currentTarget.style.backgroundColor = theme.hoverBg;
+                                                }}
+                                                onMouseLeave={(e) => {
+                                                    e.currentTarget.style.backgroundColor = "transparent";
+                                                }}
+                                            >
+                                                Cancel
+                                            </button>
+                                            <button
+                                                onClick={handleAddAsset}
+                                                disabled={saving}
+                                                style={{
+                                                    flex: "1",
+                                                    padding: "clamp(10px, 2.5vw, 12px)",
+                                                    borderRadius: "12px",
+                                                    background: "linear-gradient(135deg, #6366f1, #8b5cf6)",
+                                                    color: "white",
+                                                    fontSize: "clamp(14px, 3.5vw, 15px)",
+                                                    fontWeight: "600",
+                                                    border: "none",
+                                                    cursor: saving ? "not-allowed" : "pointer",
+                                                    opacity: saving ? 0.7 : 1,
+                                                    boxShadow: "0 4px 12px rgba(99, 102, 241, 0.25)",
+                                                    transition: "all 0.2s",
+                                                }}
+                                            >
+                                                {saving ? "Encrypting..." : "Encrypt & Save"}
+                                            </button>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+                                        {/* Success Message */}
+                                        <div style={{ textAlign: "center", padding: "clamp(12px, 3vw, 16px) 0" }}>
+                                            <div
+                                                style={{
+                                                    width: "64px",
+                                                    height: "64px",
+                                                    borderRadius: "50%",
+                                                    backgroundColor: theme.successBg,
+                                                    display: "inline-flex",
+                                                    alignItems: "center",
+                                                    justifyContent: "center",
+                                                    marginBottom: "16px",
+                                                }}
+                                            >
+                                                <Check style={{ width: "32px", height: "32px", color: theme.successText }} />
+                                            </div>
+                                            <h3
+                                                style={{
+                                                    fontSize: "clamp(18px, 4.5vw, 20px)",
+                                                    fontWeight: "700",
+                                                    color: theme.textPrimary,
+                                                }}
+                                            >
+                                                Asset Saved!
+                                            </h3>
+                                            <p
+                                                style={{
+                                                    fontSize: "clamp(13px, 3.2vw, 14px)",
+                                                    color: theme.textSecondary,
+                                                    marginTop: "4px",
+                                                }}
+                                            >
+                                                Your data has been encrypted and stored securely.
+                                            </p>
+                                        </div>
+
+                                        {/* Encryption Key */}
+                                        <div>
+                                            <label
+                                                style={{
+                                                    display: "block",
+                                                    fontSize: "clamp(13px, 3.2vw, 14px)",
+                                                    fontWeight: "500",
+                                                    color: theme.textSecondary,
+                                                    marginBottom: "8px",
+                                                }}
+                                            >
+                                                Your Encryption Key
+                                            </label>
+                                            <div style={{ position: "relative" }}>
+                                                <textarea
+                                                    readOnly
+                                                    value={encryptionKey}
+                                                    style={{
+                                                        width: "100%",
+                                                        padding: "clamp(10px, 2.5vw, 12px)",
+                                                        paddingRight: "48px",
+                                                        borderRadius: "12px",
+                                                        border: `1px solid ${theme.inputBorder}`,
+                                                        backgroundColor: theme.inputBg,
+                                                        color: theme.textPrimary,
+                                                        fontSize: "clamp(11px, 2.7vw, 12px)",
+                                                        fontFamily: "monospace",
+                                                        minHeight: "100px",
+                                                        resize: "none",
+                                                    }}
+                                                />
+                                                <button
+                                                    onClick={copyKey}
+                                                    style={{
+                                                        position: "absolute",
+                                                        top: "8px",
+                                                        right: "8px",
+                                                        padding: "8px",
+                                                        borderRadius: "8px",
+                                                        backgroundColor: isDark ? "#1e293b" : "#ffffff",
+                                                        border: `1px solid ${theme.inputBorder}`,
+                                                        cursor: "pointer",
+                                                        boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
+                                                        transition: "all 0.2s",
+                                                    }}
+                                                    onMouseEnter={(e) => {
+                                                        e.currentTarget.style.backgroundColor = theme.hoverBg;
+                                                    }}
+                                                    onMouseLeave={(e) => {
+                                                        e.currentTarget.style.backgroundColor = isDark ? "#1e293b" : "#ffffff";
+                                                    }}
+                                                >
+                                                    {copiedKey ? (
+                                                        <Check style={{ width: "16px", height: "16px", color: theme.successText }} />
+                                                    ) : (
+                                                        <Copy style={{ width: "16px", height: "16px", color: theme.textSecondary }} />
+                                                    )}
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        {/* Warning */}
+                                        <div
+                                            style={{
+                                                padding: "clamp(12px, 3vw, 16px)",
+                                                borderRadius: "12px",
+                                                backgroundColor: theme.dangerBg,
+                                                border: `1px solid ${isDark ? "#7f1d1d" : "#fecaca"}`,
+                                            }}
+                                        >
+                                            <p style={{ fontSize: "clamp(12px, 3vw, 13px)", color: theme.dangerText }}>
+                                                <strong>IMPORTANT:</strong> Save this key somewhere safe (password manager, secure
+                                                note). Without this key, your data cannot be decrypted. We do not store this key!
+                                            </p>
+                                        </div>
+
+                                        {/* Close Button */}
+                                        <button
+                                            onClick={closeAndReset}
+                                            style={{
+                                                width: "100%",
+                                                padding: "clamp(10px, 2.5vw, 12px)",
+                                                borderRadius: "12px",
+                                                background: "linear-gradient(135deg, #6366f1, #8b5cf6)",
+                                                color: "white",
+                                                fontSize: "clamp(14px, 3.5vw, 15px)",
+                                                fontWeight: "600",
+                                                border: "none",
+                                                cursor: "pointer",
+                                                boxShadow: "0 4px 12px rgba(99, 102, 241, 0.25)",
+                                            }}
+                                        >
+                                            I&apos;ve Saved My Key
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
                     </div>
-                )}
-            </Modal>
+                </>
+            )}
+
+            <style jsx>{`
+                .animate-spin {
+                    animation: spin 1s linear infinite;
+                }
+                @keyframes spin {
+                    from {
+                        transform: rotate(0deg);
+                    }
+                    to {
+                        transform: rotate(360deg);
+                    }
+                }
+                @media (min-width: 640px) {
+                    .header-wrapper {
+                        flex-direction: row;
+                        align-items: center;
+                        justify-content: space-between;
+                    }
+                    .add-btn {
+                        width: auto;
+                    }
+                }
+                .asset-card:hover {
+                    box-shadow: ${isDark ? "0 8px 24px rgba(0, 0, 0, 0.4)" : "0 8px 24px rgba(0, 0, 0, 0.12)"};
+                }
+            `}</style>
         </div>
     );
 }

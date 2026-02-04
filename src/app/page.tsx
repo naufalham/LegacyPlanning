@@ -1,3 +1,6 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
   Shield,
@@ -10,98 +13,428 @@ import {
   Zap,
   Heart,
   FileText,
+  Menu,
+  X,
 } from "lucide-react";
 
 export default function Home() {
+  const [isDark, setIsDark] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  useEffect(() => {
+    // Check system preference
+    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+    setIsDark(mediaQuery.matches);
+
+    // Listen for changes
+    const handler = (e: MediaQueryListEvent) => setIsDark(e.matches);
+    mediaQuery.addEventListener("change", handler);
+    return () => mediaQuery.removeEventListener("change", handler);
+  }, []);
+
+  // Close mobile menu when clicking outside
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "unset";
+    }
+  }, [mobileMenuOpen]);
+
+  // Theme colors
+  const theme = {
+    bg: isDark
+      ? "linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%)"
+      : "linear-gradient(135deg, #f8fafc 0%, #ffffff 50%, #eef2ff 100%)",
+    navBg: isDark ? "rgba(15, 23, 42, 0.9)" : "rgba(255, 255, 255, 0.9)",
+    navBorder: isDark ? "#1e293b" : "#e5e7eb",
+    textPrimary: isDark ? "#f8fafc" : "#111827",
+    textSecondary: isDark ? "#94a3b8" : "#4b5563",
+    textMuted: isDark ? "#64748b" : "#9ca3af",
+    cardBg: isDark ? "#1e293b" : "white",
+    cardBorder: isDark ? "#334155" : "#f3f4f6",
+    problemCardBg: isDark
+      ? "linear-gradient(135deg, #450a0a, #431407)"
+      : "linear-gradient(135deg, #fef2f2, #fff7ed)",
+    problemCardBorder: isDark ? "#7f1d1d" : "#fecaca",
+    sectionBg: isDark ? "#0f172a" : "white",
+    badgeBg: isDark ? "#312e81" : "#e0e7ff",
+    badgeText: isDark ? "#a5b4fc" : "#4338ca",
+    heroVisualBg: isDark
+      ? "linear-gradient(135deg, #312e81, #581c87)"
+      : "linear-gradient(135deg, #e0e7ff, #f3e8ff)",
+    footerBorder: isDark ? "#1e293b" : "#e5e7eb",
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-indigo-50 dark:from-gray-950 dark:via-gray-900 dark:to-indigo-950">
+    <div className="min-h-screen" style={{ background: theme.bg }}>
       {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-b border-gray-200 dark:border-gray-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-2">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/25">
-                <Shield className="w-5 h-5 text-white" />
+      <nav
+        className="fixed top-0 left-0 right-0 z-50"
+        style={{
+          backgroundColor: theme.navBg,
+          backdropFilter: "blur(12px)",
+          borderBottom: `1px solid ${theme.navBorder}`,
+        }}
+      >
+        <div
+          style={{
+            maxWidth: "1280px",
+            margin: "0 auto",
+            padding: "0 clamp(16px, 5vw, 24px)",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              height: "64px",
+            }}
+          >
+            {/* Logo */}
+            <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+              <div
+                style={{
+                  width: "40px",
+                  height: "40px",
+                  borderRadius: "12px",
+                  background: "linear-gradient(135deg, #6366f1, #8b5cf6)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  boxShadow: "0 4px 12px rgba(99, 102, 241, 0.25)",
+                }}
+              >
+                <Shield style={{ width: "20px", height: "20px", color: "white" }} />
               </div>
-              <span className="font-bold text-gray-900 dark:text-white text-lg">
+              <span
+                style={{
+                  fontWeight: "700",
+                  color: theme.textPrimary,
+                  fontSize: "clamp(16px, 4vw, 18px)",
+                }}
+              >
                 Legacy Planning
               </span>
             </div>
-            <div className="flex items-center gap-4">
+
+            {/* Desktop Navigation */}
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "16px",
+              }}
+              className="desktop-nav"
+            >
               <Link
                 href="/claim"
-                className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white font-medium transition-colors"
+                style={{
+                  color: theme.textSecondary,
+                  fontWeight: "500",
+                  textDecoration: "none",
+                  transition: "color 0.2s",
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.color = theme.textPrimary)}
+                onMouseLeave={(e) => (e.currentTarget.style.color = theme.textSecondary)}
               >
                 Claim Access
               </Link>
               <Link
                 href="/login"
-                className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white font-medium transition-colors"
+                style={{
+                  color: theme.textSecondary,
+                  fontWeight: "500",
+                  textDecoration: "none",
+                  transition: "color 0.2s",
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.color = theme.textPrimary)}
+                onMouseLeave={(e) => (e.currentTarget.style.color = theme.textSecondary)}
               >
                 Login
               </Link>
               <Link
                 href="/register"
-                className="inline-flex items-center justify-center px-4 py-2 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-semibold shadow-lg shadow-indigo-500/25 hover:shadow-xl transition-all"
+                className="btn-hover"
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  padding: "10px 20px",
+                  borderRadius: "12px",
+                  background: "linear-gradient(135deg, #6366f1, #8b5cf6)",
+                  color: "white",
+                  fontWeight: "600",
+                  textDecoration: "none",
+                  boxShadow: "0 4px 12px rgba(99, 102, 241, 0.25)",
+                }}
               >
                 Get Started
               </Link>
             </div>
+
+            {/* Mobile Menu Button */}
+            <button
+              className="mobile-menu-btn"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              style={{
+                display: "none",
+                padding: "8px",
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                color: theme.textPrimary,
+              }}
+              aria-label="Toggle menu"
+            >
+              {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+            </button>
+          </div>
+        </div>
+
+        {/* Mobile Menu */}
+        <div
+          className={`mobile-menu ${mobileMenuOpen ? "open" : ""}`}
+          style={{
+            display: "none",
+            position: "fixed",
+            top: "64px",
+            left: "0",
+            right: "0",
+            bottom: "0",
+            backgroundColor: theme.navBg,
+            padding: "24px",
+            transform: mobileMenuOpen ? "translateX(0)" : "translateX(-100%)",
+            transition: "transform 0.3s ease",
+          }}
+        >
+          <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+            <Link
+              href="/claim"
+              onClick={() => setMobileMenuOpen(false)}
+              style={{
+                color: theme.textSecondary,
+                fontWeight: "500",
+                textDecoration: "none",
+                padding: "12px 16px",
+                borderRadius: "8px",
+                backgroundColor: theme.cardBg,
+              }}
+            >
+              Claim Access
+            </Link>
+            <Link
+              href="/login"
+              onClick={() => setMobileMenuOpen(false)}
+              style={{
+                color: theme.textSecondary,
+                fontWeight: "500",
+                textDecoration: "none",
+                padding: "12px 16px",
+                borderRadius: "8px",
+                backgroundColor: theme.cardBg,
+              }}
+            >
+              Login
+            </Link>
+            <Link
+              href="/register"
+              onClick={() => setMobileMenuOpen(false)}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                padding: "12px 16px",
+                borderRadius: "12px",
+                background: "linear-gradient(135deg, #6366f1, #8b5cf6)",
+                color: "white",
+                fontWeight: "600",
+                textDecoration: "none",
+                boxShadow: "0 4px 12px rgba(99, 102, 241, 0.25)",
+              }}
+            >
+              Get Started
+            </Link>
           </div>
         </div>
       </nav>
 
       {/* Hero Section */}
-      <section className="pt-32 pb-20 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center max-w-4xl mx-auto">
+      <section
+        style={{
+          paddingTop: "clamp(120px, 20vw, 160px)",
+          paddingBottom: "clamp(40px, 10vw, 80px)",
+          paddingLeft: "clamp(16px, 5vw, 24px)",
+          paddingRight: "clamp(16px, 5vw, 24px)",
+        }}
+      >
+        <div style={{ maxWidth: "1280px", margin: "0 auto" }}>
+          <div style={{ textAlign: "center", maxWidth: "896px", margin: "0 auto" }}>
             {/* Badge */}
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 text-sm font-medium mb-6">
-              <Zap className="w-4 h-4" />
+            <div
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "8px",
+                padding: "8px 16px",
+                borderRadius: "999px",
+                backgroundColor: theme.badgeBg,
+                color: theme.badgeText,
+                fontSize: "clamp(12px, 3vw, 14px)",
+                fontWeight: "500",
+                marginBottom: "24px",
+              }}
+            >
+              <Zap style={{ width: "16px", height: "16px" }} />
               AI-Powered Digital Legacy Protection
             </div>
 
             {/* Headline */}
-            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-gray-900 dark:text-white leading-tight mb-6">
-              Secure Your
-              <span className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-transparent">
-                {" "}Digital Legacy
-              </span>
+            <h1
+              style={{
+                fontSize: "clamp(32px, 8vw, 72px)",
+                fontWeight: "800",
+                color: theme.textPrimary,
+                lineHeight: "1.1",
+                marginBottom: "clamp(16px, 4vw, 24px)",
+              }}
+            >
+              Secure Your{" "}
+              <span className="gradient-text">Digital Legacy</span>
             </h1>
 
             {/* Subheadline */}
-            <p className="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto mb-10">
+            <p
+              style={{
+                fontSize: "clamp(16px, 4vw, 20px)",
+                color: theme.textSecondary,
+                maxWidth: "640px",
+                margin: "0 auto",
+                marginBottom: "clamp(24px, 6vw, 40px)",
+                lineHeight: "1.6",
+              }}
+            >
               Protect your digital assets with our intelligent Dead Man&apos;s Switch.
               Ensure your loved ones can access important information when they need it most.
             </p>
 
             {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <div
+              style={{
+                display: "flex",
+                flexWrap: "wrap",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "clamp(12px, 3vw, 16px)",
+              }}
+            >
               <Link
                 href="/register"
-                className="inline-flex items-center justify-center px-8 py-4 rounded-2xl bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-bold text-lg shadow-xl shadow-indigo-500/30 hover:shadow-2xl hover:shadow-indigo-500/40 transition-all group"
+                className="btn-hover"
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  padding: "clamp(12px, 3vw, 16px) clamp(20px, 5vw, 32px)",
+                  borderRadius: "16px",
+                  background: "linear-gradient(135deg, #6366f1, #8b5cf6)",
+                  color: "white",
+                  fontWeight: "700",
+                  fontSize: "clamp(14px, 3.5vw, 18px)",
+                  textDecoration: "none",
+                  boxShadow: "0 8px 24px rgba(99, 102, 241, 0.3)",
+                  whiteSpace: "nowrap",
+                }}
               >
                 Start Protecting Now
-                <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+                <ArrowRight
+                  style={{
+                    width: "clamp(16px, 4vw, 20px)",
+                    height: "clamp(16px, 4vw, 20px)",
+                    marginLeft: "8px",
+                  }}
+                />
               </Link>
               <Link
                 href="/claim"
-                className="inline-flex items-center justify-center px-8 py-4 rounded-2xl border-2 border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 font-bold text-lg hover:border-indigo-500 hover:text-indigo-500 transition-all"
+                className="btn-hover"
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  padding: "clamp(12px, 3vw, 16px) clamp(20px, 5vw, 32px)",
+                  borderRadius: "16px",
+                  border: `2px solid ${theme.navBorder}`,
+                  color: theme.textPrimary,
+                  fontWeight: "700",
+                  fontSize: "clamp(14px, 3.5vw, 18px)",
+                  textDecoration: "none",
+                  backgroundColor: isDark ? "transparent" : "white",
+                  whiteSpace: "nowrap",
+                }}
               >
-                <Key className="w-5 h-5 mr-2" />
+                <Key
+                  style={{
+                    width: "clamp(16px, 4vw, 20px)",
+                    height: "clamp(16px, 4vw, 20px)",
+                    marginRight: "8px",
+                  }}
+                />
                 I Have an Access Key
               </Link>
             </div>
           </div>
 
           {/* Hero Visual */}
-          <div className="mt-16 relative">
-            <div className="absolute inset-0 bg-gradient-to-t from-white dark:from-gray-950 to-transparent z-10 pointer-events-none" />
-            <div className="relative mx-auto max-w-5xl rounded-3xl overflow-hidden shadow-2xl shadow-gray-300/50 dark:shadow-gray-900/50 border border-gray-200 dark:border-gray-800">
-              <div className="aspect-video bg-gradient-to-br from-indigo-100 to-purple-100 dark:from-indigo-900/30 dark:to-purple-900/30 flex items-center justify-center">
-                <div className="text-center">
-                  <Shield className="w-24 h-24 text-indigo-500 mx-auto mb-4 animate-pulse" />
-                  <p className="text-lg text-gray-600 dark:text-gray-400">
+          <div style={{ marginTop: "clamp(32px, 8vw, 64px)", position: "relative" }}>
+            <div
+              style={{
+                position: "absolute",
+                inset: "0",
+                background: isDark
+                  ? "linear-gradient(to top, #0f172a, transparent)"
+                  : "linear-gradient(to top, white, transparent)",
+                zIndex: "10",
+                pointerEvents: "none",
+              }}
+            />
+            <div
+              style={{
+                maxWidth: "960px",
+                margin: "0 auto",
+                borderRadius: "clamp(16px, 4vw, 24px)",
+                overflow: "hidden",
+                boxShadow: isDark
+                  ? "0 25px 50px -12px rgba(0, 0, 0, 0.5)"
+                  : "0 25px 50px -12px rgba(0, 0, 0, 0.15)",
+                border: `1px solid ${theme.navBorder}`,
+              }}
+            >
+              <div
+                style={{
+                  aspectRatio: "16/9",
+                  background: theme.heroVisualBg,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <div style={{ textAlign: "center", padding: "16px" }}>
+                  <Shield
+                    style={{
+                      width: "clamp(48px, 12vw, 96px)",
+                      height: "clamp(48px, 12vw, 96px)",
+                      color: "#6366f1",
+                      margin: "0 auto 16px auto",
+                    }}
+                  />
+                  <p
+                    style={{
+                      fontSize: "clamp(14px, 3.5vw, 18px)",
+                      color: theme.textSecondary,
+                    }}
+                  >
                     Your Digital Vault Dashboard
                   </p>
                 </div>
@@ -112,19 +445,49 @@ export default function Home() {
       </section>
 
       {/* Problem Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-white dark:bg-gray-900/50">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center max-w-3xl mx-auto mb-16">
-            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-4">
+      <section
+        style={{
+          padding: "clamp(40px, 10vw, 80px) clamp(16px, 5vw, 24px)",
+          backgroundColor: theme.sectionBg,
+        }}
+      >
+        <div style={{ maxWidth: "1280px", margin: "0 auto" }}>
+          <div
+            style={{
+              textAlign: "center",
+              maxWidth: "768px",
+              margin: "0 auto",
+              marginBottom: "clamp(32px, 8vw, 64px)",
+            }}
+          >
+            <h2
+              style={{
+                fontSize: "clamp(24px, 6vw, 40px)",
+                fontWeight: "700",
+                color: theme.textPrimary,
+                marginBottom: "16px",
+              }}
+            >
               The Problem We Solve
             </h2>
-            <p className="text-lg text-gray-600 dark:text-gray-400">
+            <p
+              style={{
+                fontSize: "clamp(14px, 3.5vw, 18px)",
+                color: theme.textSecondary,
+              }}
+            >
               In today&apos;s digital world, your loved ones face significant challenges
               accessing your important digital assets.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 280px), 1fr))",
+              gap: "clamp(16px, 4vw, 32px)",
+            }}
+          >
             {[
               {
                 icon: Lock,
@@ -147,13 +510,40 @@ export default function Home() {
             ].map((item, i) => (
               <div
                 key={i}
-                className="p-8 rounded-3xl bg-gradient-to-br from-red-50 to-orange-50 dark:from-red-900/10 dark:to-orange-900/10 border border-red-100 dark:border-red-900/30"
+                className="card-hover"
+                style={{
+                  padding: "clamp(20px, 5vw, 32px)",
+                  borderRadius: "clamp(16px, 4vw, 24px)",
+                  background: theme.problemCardBg,
+                  border: `1px solid ${theme.problemCardBorder}`,
+                }}
               >
-                <item.icon className="w-12 h-12 text-red-500 mb-4" />
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+                <item.icon
+                  style={{
+                    width: "clamp(32px, 8vw, 48px)",
+                    height: "clamp(32px, 8vw, 48px)",
+                    color: "#ef4444",
+                    marginBottom: "16px",
+                  }}
+                />
+                <h3
+                  style={{
+                    fontSize: "clamp(16px, 4vw, 20px)",
+                    fontWeight: "700",
+                    color: theme.textPrimary,
+                    marginBottom: "8px",
+                  }}
+                >
                   {item.title}
                 </h3>
-                <p className="text-gray-600 dark:text-gray-400">{item.description}</p>
+                <p
+                  style={{
+                    color: theme.textSecondary,
+                    fontSize: "clamp(14px, 3.5vw, 16px)",
+                  }}
+                >
+                  {item.description}
+                </p>
               </div>
             ))}
           </div>
@@ -161,59 +551,127 @@ export default function Home() {
       </section>
 
       {/* Solution/Features Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center max-w-3xl mx-auto mb-16">
-            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-4">
+      <section
+        style={{
+          padding: "clamp(40px, 10vw, 80px) clamp(16px, 5vw, 24px)",
+        }}
+      >
+        <div style={{ maxWidth: "1280px", margin: "0 auto" }}>
+          <div
+            style={{
+              textAlign: "center",
+              maxWidth: "768px",
+              margin: "0 auto",
+              marginBottom: "clamp(32px, 8vw, 64px)",
+            }}
+          >
+            <h2
+              style={{
+                fontSize: "clamp(24px, 6vw, 40px)",
+                fontWeight: "700",
+                color: theme.textPrimary,
+                marginBottom: "16px",
+              }}
+            >
               How It Works
             </h2>
-            <p className="text-lg text-gray-600 dark:text-gray-400">
+            <p
+              style={{
+                fontSize: "clamp(14px, 3.5vw, 18px)",
+                color: theme.textSecondary,
+              }}
+            >
               Our intelligent system ensures your digital legacy is protected and
               accessible when needed.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 240px), 1fr))",
+              gap: "clamp(16px, 4vw, 24px)",
+            }}
+          >
             {[
               {
                 icon: Lock,
                 title: "Encrypt & Store",
                 description: "Add your assets with client-side encryption. Only you hold the keys.",
-                color: "from-purple-500 to-indigo-600",
+                color: "#8b5cf6",
               },
               {
                 icon: Users,
                 title: "Add Beneficiaries",
                 description: "Designate trusted people who should receive access.",
-                color: "from-indigo-500 to-blue-600",
+                color: "#6366f1",
               },
               {
                 icon: Heart,
                 title: "Stay Active",
                 description: "Regular check-ins keep the Dead Man's Switch from triggering.",
-                color: "from-pink-500 to-rose-600",
+                color: "#ec4899",
               },
               {
                 icon: Key,
                 title: "Secure Transfer",
                 description: "If inactive, beneficiaries are notified and verified before access.",
-                color: "from-green-500 to-emerald-600",
+                color: "#10b981",
               },
             ].map((item, i) => (
-              <div key={i} className="group">
-                <div className="p-6 rounded-3xl bg-white dark:bg-gray-900 shadow-xl shadow-gray-200/50 dark:shadow-gray-900/50 border border-gray-100 dark:border-gray-800 hover:shadow-2xl transition-all">
-                  <div
-                    className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${item.color} flex items-center justify-center shadow-lg mb-4`}
-                  >
-                    <item.icon className="w-7 h-7 text-white" />
-                  </div>
-                  <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">
-                    {item.title}
-                  </h3>
-                  <p className="text-gray-600 dark:text-gray-400 text-sm">
-                    {item.description}
-                  </p>
+              <div
+                key={i}
+                className="card-hover"
+                style={{
+                  padding: "clamp(20px, 5vw, 24px)",
+                  borderRadius: "clamp(16px, 4vw, 24px)",
+                  backgroundColor: theme.cardBg,
+                  boxShadow: isDark
+                    ? "0 10px 40px rgba(0, 0, 0, 0.3)"
+                    : "0 10px 40px rgba(0, 0, 0, 0.08)",
+                  border: `1px solid ${theme.cardBorder}`,
+                }}
+              >
+                <div
+                  style={{
+                    width: "clamp(40px, 10vw, 56px)",
+                    height: "clamp(40px, 10vw, 56px)",
+                    borderRadius: "clamp(12px, 3vw, 16px)",
+                    backgroundColor: item.color,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    marginBottom: "16px",
+                    boxShadow: `0 4px 12px ${item.color}40`,
+                  }}
+                >
+                  <item.icon
+                    style={{
+                      width: "clamp(20px, 5vw, 28px)",
+                      height: "clamp(20px, 5vw, 28px)",
+                      color: "white",
+                    }}
+                  />
                 </div>
+                <h3
+                  style={{
+                    fontSize: "clamp(16px, 4vw, 18px)",
+                    fontWeight: "700",
+                    color: theme.textPrimary,
+                    marginBottom: "8px",
+                  }}
+                >
+                  {item.title}
+                </h3>
+                <p
+                  style={{
+                    fontSize: "clamp(13px, 3.2vw, 14px)",
+                    color: theme.textSecondary,
+                    lineHeight: "1.5",
+                  }}
+                >
+                  {item.description}
+                </p>
               </div>
             ))}
           </div>
@@ -221,18 +679,48 @@ export default function Home() {
       </section>
 
       {/* Features Grid */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-indigo-500 to-purple-600">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center max-w-3xl mx-auto mb-16">
-            <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
+      <section
+        style={{
+          padding: "clamp(40px, 10vw, 80px) clamp(16px, 5vw, 24px)",
+          background: "linear-gradient(135deg, #6366f1, #8b5cf6)",
+        }}
+      >
+        <div style={{ maxWidth: "1280px", margin: "0 auto" }}>
+          <div
+            style={{
+              textAlign: "center",
+              maxWidth: "768px",
+              margin: "0 auto",
+              marginBottom: "clamp(32px, 8vw, 64px)",
+            }}
+          >
+            <h2
+              style={{
+                fontSize: "clamp(24px, 6vw, 40px)",
+                fontWeight: "700",
+                color: "white",
+                marginBottom: "16px",
+              }}
+            >
               Enterprise-Grade Security
             </h2>
-            <p className="text-lg text-indigo-100">
+            <p
+              style={{
+                fontSize: "clamp(14px, 3.5vw, 18px)",
+                color: "#c7d2fe",
+              }}
+            >
               Your data is protected with the latest security standards
             </p>
           </div>
 
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 260px), 1fr))",
+              gap: "clamp(12px, 3vw, 24px)",
+            }}
+          >
             {[
               "AES-256 Client-Side Encryption",
               "Zero-Knowledge Architecture",
@@ -243,10 +731,34 @@ export default function Home() {
             ].map((feature, i) => (
               <div
                 key={i}
-                className="flex items-center gap-3 p-4 rounded-2xl bg-white/10 backdrop-blur-xl border border-white/20"
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "12px",
+                  padding: "clamp(12px, 3vw, 16px)",
+                  borderRadius: "clamp(12px, 3vw, 16px)",
+                  backgroundColor: "rgba(255, 255, 255, 0.1)",
+                  backdropFilter: "blur(12px)",
+                  border: "1px solid rgba(255, 255, 255, 0.2)",
+                }}
               >
-                <CheckCircle className="w-6 h-6 text-green-400" />
-                <span className="text-white font-medium">{feature}</span>
+                <CheckCircle
+                  style={{
+                    width: "clamp(20px, 5vw, 24px)",
+                    height: "clamp(20px, 5vw, 24px)",
+                    color: "#4ade80",
+                    flexShrink: 0,
+                  }}
+                />
+                <span
+                  style={{
+                    color: "white",
+                    fontWeight: "500",
+                    fontSize: "clamp(13px, 3.2vw, 15px)",
+                  }}
+                >
+                  {feature}
+                </span>
               </div>
             ))}
           </div>
@@ -254,41 +766,121 @@ export default function Home() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-4">
+      <section
+        style={{
+          padding: "clamp(40px, 10vw, 80px) clamp(16px, 5vw, 24px)",
+        }}
+      >
+        <div style={{ maxWidth: "896px", margin: "0 auto", textAlign: "center" }}>
+          <h2
+            style={{
+              fontSize: "clamp(24px, 6vw, 40px)",
+              fontWeight: "700",
+              color: theme.textPrimary,
+              marginBottom: "16px",
+            }}
+          >
             Start Protecting Your Digital Legacy Today
           </h2>
-          <p className="text-lg text-gray-600 dark:text-gray-400 mb-8">
+          <p
+            style={{
+              fontSize: "clamp(14px, 3.5vw, 18px)",
+              color: theme.textSecondary,
+              marginBottom: "clamp(24px, 6vw, 32px)",
+            }}
+          >
             Join thousands of professionals who trust Legacy Planning to secure their
             digital future.
           </p>
           <Link
             href="/register"
-            className="inline-flex items-center justify-center px-10 py-5 rounded-2xl bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-bold text-xl shadow-xl shadow-indigo-500/30 hover:shadow-2xl hover:shadow-indigo-500/40 transition-all group"
+            className="btn-hover"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: "clamp(14px, 3.5vw, 20px) clamp(24px, 6vw, 40px)",
+              borderRadius: "16px",
+              background: "linear-gradient(135deg, #6366f1, #8b5cf6)",
+              color: "white",
+              fontWeight: "700",
+              fontSize: "clamp(16px, 4vw, 20px)",
+              textDecoration: "none",
+              boxShadow: "0 8px 24px rgba(99, 102, 241, 0.3)",
+            }}
           >
             Get Started Free
-            <ArrowRight className="w-6 h-6 ml-2 group-hover:translate-x-1 transition-transform" />
+            <ArrowRight
+              style={{
+                width: "clamp(20px, 5vw, 24px)",
+                height: "clamp(20px, 5vw, 24px)",
+                marginLeft: "8px",
+              }}
+            />
           </Link>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="py-12 px-4 sm:px-6 lg:px-8 border-t border-gray-200 dark:border-gray-800">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-2">
-              <Shield className="w-6 h-6 text-indigo-500" />
-              <span className="font-bold text-gray-900 dark:text-white">
+      <footer
+        style={{
+          padding: "clamp(32px, 8vw, 48px) clamp(16px, 5vw, 24px)",
+          borderTop: `1px solid ${theme.footerBorder}`,
+        }}
+      >
+        <div style={{ maxWidth: "1280px", margin: "0 auto" }}>
+          <div
+            style={{
+              display: "flex",
+              flexWrap: "wrap",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: "16px",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <Shield style={{ width: "24px", height: "24px", color: "#6366f1" }} />
+              <span
+                style={{
+                  fontWeight: "700",
+                  color: theme.textPrimary,
+                  fontSize: "clamp(14px, 3.5vw, 16px)",
+                }}
+              >
                 Legacy Planning
               </span>
             </div>
-            <p className="text-gray-500 text-sm">
+            <p
+              style={{
+                color: theme.textMuted,
+                fontSize: "clamp(12px, 3vw, 14px)",
+              }}
+            >
               © 2026 Legacy Planning. Secure your digital future.
             </p>
           </div>
         </div>
       </footer>
+
+      <style jsx>{`
+        @media (max-width: 768px) {
+          .desktop-nav {
+            display: none !important;
+          }
+          .mobile-menu-btn {
+            display: block !important;
+          }
+          .mobile-menu {
+            display: block !important;
+          }
+        }
+
+        @media (min-width: 769px) {
+          .mobile-menu {
+            display: none !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }
