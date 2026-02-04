@@ -2,9 +2,17 @@
 
 import Groq from "groq-sdk";
 
-const groq = new Groq({
-    apiKey: process.env.GROQ_API_KEY || "gsk_key", // Fallback for build, but needs real key
-});
+// Lazy initialization to avoid build-time errors
+let groq: Groq | null = null;
+
+function getGroq(): Groq {
+    if (!groq) {
+        groq = new Groq({
+            apiKey: process.env.GROQ_API_KEY || "",
+        });
+    }
+    return groq;
+}
 
 export async function generateLegacyGuide(decryptedContent: string) {
     if (!process.env.GROQ_API_KEY) {
@@ -13,7 +21,7 @@ export async function generateLegacyGuide(decryptedContent: string) {
     }
 
     try {
-        const chatCompletion = await groq.chat.completions.create({
+        const chatCompletion = await getGroq().chat.completions.create({
             messages: [
                 {
                     role: "system",

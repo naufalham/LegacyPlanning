@@ -3,7 +3,15 @@ import Stripe from "stripe";
 import { prisma } from "@/lib/prisma";
 import { sendAccessGrantedEmail } from "@/lib/email";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "");
+// Lazy initialization to avoid build-time errors
+let stripe: Stripe | null = null;
+
+function getStripe(): Stripe {
+    if (!stripe) {
+        stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "");
+    }
+    return stripe;
+}
 
 export async function POST(request: Request) {
     const body = await request.text();
@@ -16,7 +24,7 @@ export async function POST(request: Request) {
     let event: Stripe.Event;
 
     try {
-        event = stripe.webhooks.constructEvent(body, sig, process.env.STRIPE_WEBHOOK_SECRET);
+        event = getStripe().webhooks.constructEvent(body, sig, process.env.STRIPE_WEBHOOK_SECRET);
     } catch (err: any) {
         console.error("Webhook signature verification failed:", err.message);
         return NextResponse.json({ error: "Invalid signature" }, { status: 400 });

@@ -2,8 +2,15 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import Stripe from "stripe";
 
-// Initialize Stripe
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "sk_test_mock");
+// Lazy initialization to avoid build-time errors
+let stripe: Stripe | null = null;
+
+function getStripe(): Stripe {
+    if (!stripe) {
+        stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "");
+    }
+    return stripe;
+}
 
 export async function POST(request: Request) {
     try {
@@ -43,7 +50,7 @@ export async function POST(request: Request) {
         }
 
         // Create Stripe Identity Verification Session
-        const verificationSession = await stripe.identity.verificationSessions.create({
+        const verificationSession = await getStripe().identity.verificationSessions.create({
             type: "document",
             options: {
                 document: {

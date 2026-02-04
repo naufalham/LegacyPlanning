@@ -1,6 +1,15 @@
 import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Lazy initialization to avoid build-time errors
+let resend: Resend | null = null;
+
+function getResend(): Resend {
+    if (!resend) {
+        resend = new Resend(process.env.RESEND_API_KEY);
+    }
+    return resend;
+}
+
 const fromEmail = process.env.RESEND_FROM_EMAIL || "onboarding@resend.dev";
 
 interface EmailOptions {
@@ -19,7 +28,7 @@ async function sendEmail({ to, subject, html }: EmailOptions) {
     }
 
     try {
-        const { data, error } = await resend.emails.send({
+        const { data, error } = await getResend().emails.send({
             from: `Legacy Planning <${fromEmail}>`,
             to,
             subject,
