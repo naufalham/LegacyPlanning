@@ -15,6 +15,7 @@ import {
     Shield,
     Heart,
 } from "lucide-react";
+import AIAssistant from "@/components/ai/AIAssistant";
 
 const navigation = [
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -398,6 +399,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     {children}
                 </main>
             </div>
+
+            {/* AI Assistant */}
+            <AIAssistant />
 
             <style jsx>{`
                 @media (min-width: 1024px) {
