@@ -1,12 +1,15 @@
 import Groq from "groq-sdk";
 
-if (!process.env.GROQ_API_KEY) {
-  throw new Error("GROQ_API_KEY is not set in environment variables");
-}
+// Lazy initialization - only create client when needed (runtime, not build time)
+function getGroqClient() {
+  if (!process.env.GROQ_API_KEY) {
+    throw new Error("GROQ_API_KEY is not set in environment variables");
+  }
 
-const groq = new Groq({
-  apiKey: process.env.GROQ_API_KEY,
-});
+  return new Groq({
+    apiKey: process.env.GROQ_API_KEY,
+  });
+}
 
 export async function chatWithGroq(
   messages: Array<{ role: string; content: string }>,
@@ -17,6 +20,8 @@ export async function chatWithGroq(
   }
 ) {
   try {
+    const groq = getGroqClient();
+
     const completion = await groq.chat.completions.create({
       messages: messages as any,
       model: options?.model || "llama-3.1-70b-versatile",
